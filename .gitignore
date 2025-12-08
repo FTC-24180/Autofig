@@ -81,3 +81,7 @@ _ReSharper*/
 # TFS Temp files
 TFSTemp/
 *.tmp
+
+# Exception: Keep local development project files for easy VS debugging
+!AutoConfig.sln
+!AutoConfig.njsproj

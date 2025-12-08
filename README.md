@@ -1,4 +1,4 @@
-# FTC AutoConfig - DECODE Season
+# FTC AutoConfig
 
 A Progressive Web App (PWA) for configuring FTC DECODE season autonomous opmodes. Built with React and TailwindCSS, deployed as a static site on GitHub Pages.
 

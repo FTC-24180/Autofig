@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 // Available actions for the configuration
 const ACTIONS = [
+  { id: 'start', label: 'Start' },
   { id: 'near_launch', label: 'Near Launch' },
   { id: 'far_launch', label: 'Far Launch' },
   { id: 'spike_1', label: 'Spike 1' },

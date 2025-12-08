@@ -15,26 +15,30 @@ const ACTIONS = [
   { id: 'wait', label: 'Wait (Configurable)', hasConfig: true }
 ];
 
+// Load presets from localStorage
+const loadInitialPresets = () => {
+  const savedPresets = localStorage.getItem('ftc-autoconfig-presets');
+  if (savedPresets) {
+    try {
+      return JSON.parse(savedPresets);
+    } catch (e) {
+      console.error('Failed to load presets:', e);
+      return [];
+    }
+  }
+  return [];
+};
+
 function App() {
   const [alliance, setAlliance] = useState('red');
   const [startLocation, setStartLocation] = useState('near');
   const [actionList, setActionList] = useState([]);
-  const [presets, setPresets] = useState([]);
+  const [presets, setPresets] = useState(loadInitialPresets);
   const [presetName, setPresetName] = useState('');
   const [showQR, setShowQR] = useState(false);
 
-  // Load presets from localStorage on mount
+  // Register service worker for PWA
   useEffect(() => {
-    const savedPresets = localStorage.getItem('ftc-autoconfig-presets');
-    if (savedPresets) {
-      try {
-        setPresets(JSON.parse(savedPresets));
-      } catch (e) {
-        console.error('Failed to load presets:', e);
-      }
-    }
-
-    // Register service worker for PWA
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch((error) => {
         console.error('Service Worker registration failed:', error);
@@ -50,13 +54,12 @@ function App() {
   }, [presets]);
 
   const addAction = (action) => {
-    const newAction = {
-      id: Date.now(),
+    setActionList(prev => [...prev, {
+      id: crypto.randomUUID(),
       type: action.id,
       label: action.label,
       config: action.hasConfig ? { waitTime: 0 } : null
-    };
-    setActionList([...actionList, newAction]);
+    }]);
   };
 
   const removeAction = (id) => {
@@ -87,6 +90,7 @@ function App() {
   const getConfig = () => ({
     alliance,
     startLocation,
+    // eslint-disable-next-line no-unused-vars
     actions: actionList.map(({ id, ...rest }) => rest)
   });
 
@@ -127,7 +131,7 @@ function App() {
     setStartLocation(preset.config.startLocation);
     setActionList(preset.config.actions.map(action => ({
       ...action,
-      id: Date.now() + Math.random()
+      id: crypto.randomUUID()
     })));
   };
 

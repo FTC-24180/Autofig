@@ -8,9 +8,7 @@ import { HamburgerMenu } from './components/HamburgerMenu';
 import { WizardContainer } from './components/WizardContainer';
 import { WizardNavigation } from './components/WizardNavigation';
 import { ManageConfigModal } from './components/ManageConfigModal';
-import { Step1Match } from './components/steps/Step1Match';
-import { Step2Partner } from './components/steps/Step2Partner';
-import { Step3Alliance } from './components/steps/Step3Alliance';
+import { Step1MatchSetup } from './components/steps/Step1MatchSetup';
 import { Step4StartPosition } from './components/steps/Step4StartPosition';
 import { Step5Actions } from './components/steps/Step5Actions';
 import { Step6QRCode } from './components/steps/Step6QRCode';
@@ -187,18 +185,16 @@ function App() {
 
   const canGoNext = () => {
     switch (currentStep) {
-      case 0: return currentMatch.matchNumber > 0;
-      case 1: return true; // Partner is optional
-      case 2: return currentMatch.alliance !== '';
-      case 3: return currentMatch.startPosition?.type !== '';
-      case 4: return true; // Actions are optional but recommended
-      case 5: return true;
+      case 0: return currentMatch.matchNumber > 0 && currentMatch.alliance !== '';
+      case 1: return currentMatch.startPosition?.type !== '';
+      case 2: return true; // Actions are optional but recommended
+      case 3: return true;
       default: return true;
     }
   };
 
   const handleNext = () => {
-    if (currentStep < 5) {
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -268,16 +264,12 @@ function App() {
       {/* Main Content - Full Screen Wizard */}
       <div className="flex-1 overflow-hidden">
         <WizardContainer currentStep={currentStep} onStepChange={setCurrentStep}>
-          <Step1Match
+          <Step1MatchSetup
             matchNumber={currentMatch.matchNumber}
-            onMatchNumberChange={(num) => updateCurrentMatch({ matchNumber: num })}
-          />
-          <Step2Partner
             partnerTeam={currentMatch.partnerTeam}
-            onPartnerTeamChange={(team) => updateCurrentMatch({ partnerTeam: team })}
-          />
-          <Step3Alliance
             alliance={currentMatch.alliance}
+            onMatchNumberChange={(num) => updateCurrentMatch({ matchNumber: num })}
+            onPartnerTeamChange={(team) => updateCurrentMatch({ partnerTeam: team })}
             onAllianceChange={(alliance) => updateCurrentMatch({ alliance })}
           />
           <Step4StartPosition
@@ -308,11 +300,11 @@ function App() {
       {/* Compact Bottom Navigation */}
       <WizardNavigation
         currentStep={currentStep}
-        totalSteps={6}
+        totalSteps={4}
         onNext={handleNext}
         onPrev={handlePrev}
         canGoNext={canGoNext()}
-        nextLabel={currentStep === 5 ? 'Finish' : 'Next'}
+        nextLabel={currentStep === 3 ? 'Finish' : 'Next'}
       />
 
       {/* Manage Actions Modal */}

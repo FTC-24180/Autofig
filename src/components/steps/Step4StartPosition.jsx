@@ -56,7 +56,7 @@ export function Step4StartPosition({
         </div>
 
         {startPosition.type === 'custom' && (
-          <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4">
+          <div className="bg-white border-2 border-gray-200 rounded-lg p-4">
             <h4 className="font-semibold text-gray-800 mb-3">Custom Position</h4>
             <div className="grid grid-cols-3 gap-3">
               <div>
@@ -106,7 +106,7 @@ export function Step4StartPosition({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <div>
-              <h4 className="font-semibold text-indigo-900 mb-1">Current Position</h4>
+              <h4 className="font-semibold text-indigo-800 mb-1">Current Position</h4>
               <p className="text-sm text-indigo-800">
                 {getStartPositionLabel()}
               </p>

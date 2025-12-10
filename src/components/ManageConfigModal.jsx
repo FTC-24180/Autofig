@@ -9,13 +9,13 @@ function AddGroupForm({ onAdd }) {
         placeholder="group key (e.g. custom)"
         value={key}
         onChange={(e) => setKey(e.target.value)}
-        className="px-2 py-1 border rounded"
+        className="px-2 py-1 border border-gray-300 rounded"
       />
       <input
         placeholder="label"
         value={label}
         onChange={(e) => setLabel(e.target.value)}
-        className="px-2 py-1 border rounded"
+        className="px-2 py-1 border border-gray-300 rounded"
       />
       <button
         onClick={() => {
@@ -63,13 +63,13 @@ function AddActionForm({ groupKey, onAdd }) {
               placeholder="action id"
               value={id}
               onChange={(e) => setId(e.target.value)}
-              className="px-2 py-1 border rounded w-32 text-sm"
+              className="px-2 py-1 border border-gray-300 rounded w-32 text-sm"
             />
             <input
               placeholder="label"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              className="px-2 py-1 border rounded flex-1 text-sm"
+              className="px-2 py-1 border border-gray-300 rounded flex-1 text-sm"
             />
           </div>
 
@@ -91,12 +91,12 @@ function AddActionForm({ groupKey, onAdd }) {
                     placeholder="e.g. waitTime"
                     value={pair.key}
                     onChange={(e) => updateConfigPair(idx, 'key', e.target.value)}
-                    className="px-2 py-1 border rounded w-24 text-xs"
+                    className="px-2 py-1 border border-gray-300 rounded w-24 text-xs"
                   />
                   <select
                     value={pair.type}
                     onChange={(e) => updateConfigPair(idx, 'type', e.target.value)}
-                    className="px-2 py-1 border rounded w-20 text-xs"
+                    className="px-2 py-1 border border-gray-300 rounded w-20 text-xs"
                   >
                     <option value="number">Number</option>
                     <option value="text">Text</option>
@@ -106,7 +106,7 @@ function AddActionForm({ groupKey, onAdd }) {
                     type={pair.type === 'number' ? 'number' : 'text'}
                     value={pair.value}
                     onChange={(e) => updateConfigPair(idx, 'value', e.target.value)}
-                    className="px-2 py-1 border rounded flex-1 text-xs"
+                    className="px-2 py-1 border border-gray-300 rounded flex-1 text-xs"
                   />
                   <button
                     onClick={() => removeConfigPair(idx)}
@@ -174,13 +174,13 @@ function AddStartPositionForm({ onAdd }) {
         placeholder="position id (e.g. left)"
         value={id}
         onChange={(e) => setId(e.target.value)}
-        className="px-2 py-1 border rounded w-40"
+        className="px-2 py-1 border border-gray-300 rounded w-40"
       />
       <input
         placeholder="label"
         value={label}
         onChange={(e) => setLabel(e.target.value)}
-        className="px-2 py-1 border rounded flex-1"
+        className="px-2 py-1 border border-gray-300 rounded flex-1"
       />
       <button
         onClick={() => {
@@ -280,7 +280,7 @@ export function ManageConfigModal({
                       <input
                         value={group.label}
                         onChange={(e) => onRenameGroup(gk, e.target.value)}
-                        className="font-semibold text-gray-800 px-2 py-1 border rounded"
+                        className="font-semibold text-gray-800 px-2 py-1 border border-gray-300 rounded"
                       />
                     </div>
                     <button 
@@ -296,18 +296,18 @@ export function ManageConfigModal({
 
                   <div className="space-y-2">
                     {group.actions.map((act, idx) => (
-                      <div key={act.id + idx} className="border p-2 rounded bg-gray-50">
+                      <div key={act.id + idx} className="border p-2 rounded bg-white">
                         <div className="flex gap-2 items-start mb-2">
                           <input
                             value={act.id}
                             onChange={(e) => onUpdateActionInGroup(gk, idx, { id: e.target.value })}
-                            className="px-2 py-1 border rounded w-32 text-sm"
+                            className="px-2 py-1 border border-gray-300 rounded w-32 text-sm"
                             placeholder="ID"
                           />
                           <input
                             value={act.label}
                             onChange={(e) => onUpdateActionInGroup(gk, idx, { label: e.target.value })}
-                            className="px-2 py-1 border rounded flex-1 text-sm"
+                            className="px-2 py-1 border border-gray-300 rounded flex-1 text-sm"
                             placeholder="Label"
                           />
                           <button
@@ -345,7 +345,7 @@ export function ManageConfigModal({
                                       newConfig[e.target.value] = value;
                                       onUpdateActionInGroup(gk, idx, { config: newConfig });
                                     }}
-                                    className="px-2 py-1 border rounded w-24 text-xs"
+                                    className="px-2 py-1 border border-gray-300 rounded w-24 text-xs"
                                     placeholder="key name"
                                   />
                                   <select
@@ -359,7 +359,7 @@ export function ManageConfigModal({
                                       }
                                       onUpdateActionInGroup(gk, idx, { config: newConfig });
                                     }}
-                                    className="px-2 py-1 border rounded w-20 text-xs"
+                                    className="px-2 py-1 border border-gray-300 rounded w-20 text-xs"
                                   >
                                     <option value="number">Number</option>
                                     <option value="text">Text</option>
@@ -374,7 +374,7 @@ export function ManageConfigModal({
                                       const newConfig = { ...act.config, [key]: newValue };
                                       onUpdateActionInGroup(gk, idx, { config: newConfig });
                                     }}
-                                    className="px-2 py-1 border rounded flex-1 text-xs"
+                                    className="px-2 py-1 border border-gray-300 rounded flex-1 text-xs"
                                     placeholder="default value"
                                   />
                                   <button
@@ -432,18 +432,18 @@ export function ManageConfigModal({
 
             <div className="space-y-2">
               {startPositions.map((pos, idx) => (
-                <div key={pos.id + idx} className="flex gap-2 items-center border p-3 rounded">
+                <div key={pos.id + idx} className="flex gap-2 items-center border border-gray-300 p-3 rounded">
                   <span className="text-lg">&#127937;</span>
                   <input
                     value={pos.id}
                     onChange={(e) => onUpdateStartPosition(idx, { id: e.target.value })}
-                    className="px-2 py-1 border rounded w-32"
+                    className="px-2 py-1 border border-gray-300 rounded w-32"
                     placeholder="ID"
                   />
                   <input
                     value={pos.label}
                     onChange={(e) => onUpdateStartPosition(idx, { label: e.target.value })}
-                    className="px-2 py-1 border rounded flex-1"
+                    className="px-2 py-1 border border-gray-300 rounded flex-1"
                     placeholder="Label"
                   />
                   <button
@@ -461,7 +461,7 @@ export function ManageConfigModal({
               <AddStartPositionForm onAdd={onAddStartPosition} />
             </div>
 
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+            <div className="mt-4 p-3 bg-blue-50 border border-gray-300 border-blue-200 rounded">
               <p className="text-xs text-blue-800">
                 <strong>Note:</strong> Start positions define preset locations. The &quot;Custom&quot; position with configurable X, Y, ? is always available and cannot be removed.
               </p>

@@ -30,7 +30,7 @@ export function Step6QRCode({ config, onDownload }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <h4 className="font-semibold text-blue-900 mb-1">Individual Match QR Codes</h4>
+              <h4 className="font-semibold text-blue-800 mb-1">Individual Match QR Codes</h4>
               <p className="text-sm text-blue-800">
                 Each match has its own QR code. Select a match below to display its code, then scan it with your robot.
               </p>
@@ -56,7 +56,7 @@ export function Step6QRCode({ config, onDownload }) {
                     className={`p-3 rounded-lg border-2 transition-all touch-manipulation min-h-[60px] ${
                       selectedMatchIndex === index
                         ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200'
-                        : 'border-gray-300 bg-white active:bg-gray-50'
+                        : 'border-gray-300 bg-white active:bg-white'
                     }`}
                   >
                     <div className="text-left">
@@ -94,7 +94,7 @@ export function Step6QRCode({ config, onDownload }) {
             )}
           </div>
         ) : (
-          <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+          <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
             <p className="text-gray-500">No matches configured</p>
           </div>
         )}
@@ -102,7 +102,7 @@ export function Step6QRCode({ config, onDownload }) {
         {/* Match Summary */}
         {currentMatchConfig && (
           <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-            <h4 className="font-semibold text-indigo-900 mb-2">Current Match</h4>
+            <h4 className="font-semibold text-indigo-800 mb-2">Current Match</h4>
             <div className="space-y-1 text-sm text-indigo-800">
               <div className="flex justify-between">
                 <span className="font-medium">Match:</span>
@@ -132,7 +132,7 @@ export function Step6QRCode({ config, onDownload }) {
 
         {/* All Matches List */}
         {config.matches && config.matches.length > 0 && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
             <h4 className="font-semibold text-gray-900 mb-2">All Matches</h4>
             <div className="space-y-2">
               {config.matches.map((item, index) => {
@@ -194,7 +194,7 @@ export function Step6QRCode({ config, onDownload }) {
 
         {/* JSON Display */}
         {showJSON && currentMatchConfig && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-semibold text-gray-800">
                 Match #{currentMatchConfig.match?.number} JSON
@@ -223,7 +223,7 @@ export function Step6QRCode({ config, onDownload }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <h4 className="font-semibold text-green-900 mb-1">Ready to Scan</h4>
+              <h4 className="font-semibold text-green-800 mb-1">Ready to Scan</h4>
               <p className="text-sm text-green-800">
                 {matchCount === 1 
                   ? 'Your match is ready. Scan the QR code above with your robot\'s camera.'

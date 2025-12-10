@@ -217,14 +217,21 @@ function App() {
       setCurrentStep(0); // Reset to first step for duplicated match
     }
   };
-
-  const theme = currentMatch?.alliance === 'red'
-    ? isDarkTheme
-      ? { from: '#3f1d1d', to: '#111827', accent: '#f87171' }
-      : { from: '#fff5f5', to: '#fff1f2', accent: '#ef4444' }
-    : isDarkTheme
-      ? { from: '#0f172a', to: '#020617', accent: '#60a5fa' }
-      : { from: '#eff6ff', to: '#eef2ff', accent: '#3b82f6' };
+  
+  //const theme = currentMatch?.alliance === 'red'
+  //  ? isDarkTheme
+  //    ? { from: '#3f1d1d', to: '#111827', accent: '#f87171' }
+  //    : { from: '#fff5f5', to: '#fff1f2', accent: '#ef4444' }
+  //  : isDarkTheme
+  //    ? { from: '#1e293b', to: '#0f172a', accent: '#60a5fa' }
+    //    : { from: '#dbeafe', to: '#e0e7ff', accent: '#3b82f6' };
+    const theme = currentMatch?.alliance === 'red'
+        ? isDarkTheme
+            ? { from: '#3f1d1d', to: '#111827', accent: '#f87171' }
+            : { from: '#fff5f5', to: '#fff1f2', accent: '#ef4444' }
+        : isDarkTheme
+            ? { from: '#1E3A78  ', to: '#0f172a', accent: '#60a5fa' }
+            : { from: '#dbeafe', to: '#e0e7ff', accent: '#3b82f6' };
 
   // Show welcome screen if no matches exist
   if (matchesHook.matches.length === 0) {

@@ -49,7 +49,7 @@ export function Step1MatchSetup({ matchNumber, partnerTeam, alliance, onMatchNum
               onClick={() => onAllianceChange('red')}
               className={`relative overflow-hidden rounded-xl transition-all min-h-[120px] touch-manipulation border-2 ${
                 alliance === 'red'
-                  ? 'bg-red-500 border-red-600 shadow-xl shadow-red-500/30 scale-[1.02]'
+                  ? 'border-red-600 shadow-xl shadow-red-500/30 scale-[1.02]'
                   : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 hover:border-red-400 dark:hover:border-red-600 hover:shadow-lg'
               }`}
             >
@@ -96,7 +96,7 @@ export function Step1MatchSetup({ matchNumber, partnerTeam, alliance, onMatchNum
               onClick={() => onAllianceChange('blue')}
               className={`relative overflow-hidden rounded-xl transition-all min-h-[120px] touch-manipulation border-2 ${
                 alliance === 'blue'
-                  ? 'bg-blue-500 border-blue-600 shadow-xl shadow-blue-500/30 scale-[1.02]'
+                  ? 'border-blue-600 shadow-xl shadow-blue-500/30 scale-[1.02]'
                   : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg'
               }`}
             >

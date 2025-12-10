@@ -37,7 +37,8 @@ export function HamburgerMenu({
   onAddMatch,
   onDeleteMatch,
   onDuplicateMatch,
-  onConfigureActions, 
+  onConfigureActions,
+  onConfigureStartPositions, 
   onExportJSON, 
   onSaveTemplate,
   onLoadTemplate,
@@ -390,7 +391,7 @@ export function HamburgerMenu({
 
                 <button
                   onClick={() => {
-                    onConfigureActions();
+                    onConfigureStartPositions();
                     closeMenu();
                   }}
                   className="w-full flex items-center gap-3 p-3 text-left bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 rounded-lg transition touch-manipulation min-h-[48px]"

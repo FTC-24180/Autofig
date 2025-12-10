@@ -8,7 +8,8 @@ import { useThemePreference } from './hooks/useThemePreference';
 import { HamburgerMenu } from './components/HamburgerMenu';
 import { WizardContainer } from './components/WizardContainer';
 import { WizardNavigation } from './components/WizardNavigation';
-import { ManageConfigModal } from './components/ManageConfigModal';
+import { ManageActionsModal } from './components/ManageActionsModal';
+import { ManageStartPositionsModal } from './components/ManageStartPositionsModal';
 import { Step1MatchSetup } from './components/steps/Step1MatchSetup';
 import { Step4StartPosition } from './components/steps/Step4StartPosition';
 import { Step5Actions } from './components/steps/Step5Actions';
@@ -23,6 +24,7 @@ function App() {
 
   // Modal state
   const [showManageActions, setShowManageActions] = useState(false);
+  const [showManageStartPositions, setShowManageStartPositions] = useState(false);
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [templateName, setTemplateName] = useState('');
 
@@ -258,6 +260,7 @@ function App() {
           onDeleteMatch={matchesHook.deleteMatch}
           onDuplicateMatch={handleDuplicateMatch}
           onConfigureActions={() => setShowManageActions(true)}
+          onConfigureStartPositions={() => setShowManageStartPositions(true)}
           onExportJSON={downloadJSON}
           onSaveTemplate={() => setShowSaveTemplate(true)}
           onLoadTemplate={() => {}}
@@ -329,9 +332,8 @@ function App() {
 
         {/* Modals */}
         {showManageActions && (
-          <ManageConfigModal
+          <ManageActionsModal
             actionGroups={actionGroupsHook.actionGroups}
-            startPositions={startPositionsHook.startPositions}
             onClose={() => setShowManageActions(false)}
             onExportConfig={exportConfig}
             onRenameGroup={actionGroupsHook.renameGroup}
@@ -340,11 +342,20 @@ function App() {
             onUpdateActionInGroup={actionGroupsHook.updateActionInGroup}
             onDeleteActionInGroup={actionGroupsHook.deleteActionInGroup}
             onAddCustomGroup={actionGroupsHook.addCustomGroup}
+          />
+        )}
+
+        {showManageStartPositions && (
+          <ManageStartPositionsModal
+            startPositions={startPositionsHook.startPositions}
+            onClose={() => setShowManageStartPositions(false)}
+            onExportConfig={exportConfig}
             onAddStartPosition={startPositionsHook.addStartPosition}
             onUpdateStartPosition={startPositionsHook.updateStartPosition}
             onDeleteStartPosition={startPositionsHook.deleteStartPosition}
           />
         )}
+
 
         {showSaveTemplate && (
           <div className="fixed inset-0 bg-white dark:bg-slate-950 z-50 flex flex-col overflow-hidden safe-area">
@@ -429,6 +440,7 @@ function App() {
         onDeleteMatch={matchesHook.deleteMatch}
         onDuplicateMatch={handleDuplicateMatch}
         onConfigureActions={() => setShowManageActions(true)}
+        onConfigureStartPositions={() => setShowManageStartPositions(true)}
         onExportJSON={downloadJSON}
         onSaveTemplate={() => setShowSaveTemplate(true)}
         onLoadTemplate={() => {}}
@@ -488,9 +500,8 @@ function App() {
 
       {/* Manage Actions Modal */}
       {showManageActions && (
-        <ManageConfigModal
+        <ManageActionsModal
           actionGroups={actionGroupsHook.actionGroups}
-          startPositions={startPositionsHook.startPositions}
           onClose={() => setShowManageActions(false)}
           onExportConfig={exportConfig}
           onRenameGroup={actionGroupsHook.renameGroup}
@@ -499,6 +510,14 @@ function App() {
           onUpdateActionInGroup={actionGroupsHook.updateActionInGroup}
           onDeleteActionInGroup={actionGroupsHook.deleteActionInGroup}
           onAddCustomGroup={actionGroupsHook.addCustomGroup}
+        />
+      )}
+
+      {/* Manage Start Positions Modal */}
+      {showManageStartPositions && (
+        <ManageStartPositionsModal
+          startPositions={startPositionsHook.startPositions}
+          onClose={() => setShowManageStartPositions(false)}
           onAddStartPosition={startPositionsHook.addStartPosition}
           onUpdateStartPosition={startPositionsHook.updateStartPosition}
           onDeleteStartPosition={startPositionsHook.deleteStartPosition}

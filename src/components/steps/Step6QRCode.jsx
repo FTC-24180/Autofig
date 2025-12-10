@@ -6,7 +6,10 @@ export function Step6QRCode({ config, onDownload }) {
   const [showJSON, setShowJSON] = useState(false);
   const configJSON = JSON.stringify(config, null, 2);
   const matchCount = config.matches?.length || 0;
-  const totalActions = config.matches?.reduce((sum, match) => sum + (match.actions?.length || 0), 0) || 0;
+  const totalActions = config.matches?.reduce((sum, match) => {
+    const actions = match.match?.alliance?.auto?.actions?.length || 0;
+    return sum + actions;
+  }, 0) || 0;
 
   return (
     <WizardStep 
@@ -48,24 +51,30 @@ export function Step6QRCode({ config, onDownload }) {
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <h4 className="font-semibold text-gray-900 mb-2">Matches</h4>
             <div className="space-y-2">
-              {config.matches.map((match, index) => (
-                <div key={index} className="bg-white rounded p-3 text-sm">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-gray-800">Match #{match.matchNumber}</span>
-                    <span className={`px-2 py-0.5 text-xs font-semibold rounded ${
-                      match.alliance === 'red' 
-                        ? 'bg-red-100 text-red-800' 
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {match.alliance.toUpperCase()}
-                    </span>
+              {config.matches.map((item, index) => {
+                const matchData = item.match;
+                const alliance = matchData?.alliance;
+                const auto = alliance?.auto;
+                
+                return (
+                  <div key={index} className="bg-white rounded p-3 text-sm">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-gray-800">Match #{matchData?.number}</span>
+                      <span className={`px-2 py-0.5 text-xs font-semibold rounded ${
+                        alliance?.color === 'red' 
+                          ? 'bg-red-100 text-red-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {alliance?.color?.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      {alliance?.team_number > 0 && <div>Partner: {alliance.team_number}</div>}
+                      <div>{auto?.actions?.length || 0} action(s) configured</div>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-600">
-                    {match.partnerTeam && <div>Partner: {match.partnerTeam}</div>}
-                    <div>{match.actions?.length || 0} action(s) configured</div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -74,7 +83,7 @@ export function Step6QRCode({ config, onDownload }) {
         <div className="space-y-2">
           <button
             onClick={onDownload}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition"
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 active:bg-indigo-700 text-white rounded-lg font-semibold transition min-h-[48px] touch-manipulation"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -84,7 +93,7 @@ export function Step6QRCode({ config, onDownload }) {
 
           <button
             onClick={() => setShowJSON(!showJSON)}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition"
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 active:bg-gray-200 text-gray-700 rounded-lg font-semibold transition min-h-[48px] touch-manipulation"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -96,7 +105,7 @@ export function Step6QRCode({ config, onDownload }) {
         {/* JSON Display */}
         {showJSON && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <pre className="text-xs overflow-x-auto">
+            <pre className="text-xs overflow-x-auto whitespace-pre-wrap break-words">
               {configJSON}
             </pre>
           </div>

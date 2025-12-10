@@ -8,7 +8,6 @@ import { HamburgerMenu } from './components/HamburgerMenu';
 import { WizardContainer } from './components/WizardContainer';
 import { WizardNavigation } from './components/WizardNavigation';
 import { ManageConfigModal } from './components/ManageConfigModal';
-import { MatchManager } from './components/MatchManager';
 import { Step1Match } from './components/steps/Step1Match';
 import { Step2Partner } from './components/steps/Step2Partner';
 import { Step3Alliance } from './components/steps/Step3Alliance';
@@ -25,7 +24,6 @@ function App() {
   // Modal state
   const [showManageActions, setShowManageActions] = useState(false);
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
-  const [showMatchManager, setShowMatchManager] = useState(false);
   const [templateName, setTemplateName] = useState('');
 
   // Hooks
@@ -218,7 +216,6 @@ function App() {
 
   const handleSelectMatch = (matchId) => {
     matchesHook.setCurrentMatchId(matchId);
-    setShowMatchManager(false);
   };
 
   const handleDuplicateMatch = (matchId) => {
@@ -239,32 +236,26 @@ function App() {
     >
       {/* Compact Mobile Header */}
       <header className="bg-white shadow-sm flex-shrink-0 safe-top">
-        <div className="flex items-center justify-between px-3 py-2.5">
-          <button
-            onClick={() => setShowMatchManager(true)}
-            className="flex items-center gap-1.5 py-2 px-2.5 bg-indigo-600 active:bg-indigo-700 text-white rounded-lg font-semibold text-sm min-h-[44px] touch-manipulation"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <span className="bg-white text-indigo-600 px-1.5 py-0.5 rounded-full text-xs font-bold min-w-[20px] text-center">
-              {matchesHook.matches.length}
-            </span>
-          </button>
-          <div className="flex-1 text-center mx-2">
+        <div className="flex items-center justify-center px-3 py-2.5">
+          <div className="text-center">
             <h1 className="text-lg font-bold text-indigo-900 leading-tight">
               FTC AutoConfig
             </h1>
             <p className="text-xs text-indigo-600 leading-none">
-              Match #{currentMatch.matchNumber}
+              Match #{currentMatch.matchNumber} • {currentMatch.alliance === 'red' ? '🔴' : '🔵'} {currentMatch.alliance.toUpperCase()}
             </p>
           </div>
-          <div className="w-[72px]"></div>
         </div>
       </header>
 
-      {/* Hamburger Menu */}
+      {/* Hamburger Menu with Match Management */}
       <HamburgerMenu
+        matches={matchesHook.matches}
+        currentMatchId={matchesHook.currentMatchId}
+        onSelectMatch={handleSelectMatch}
+        onAddMatch={handleAddMatch}
+        onDeleteMatch={matchesHook.deleteMatch}
+        onDuplicateMatch={handleDuplicateMatch}
         onConfigureActions={() => setShowManageActions(true)}
         onExportJSON={downloadJSON}
         onSaveTemplate={() => setShowSaveTemplate(true)}
@@ -323,31 +314,6 @@ function App() {
         canGoNext={canGoNext()}
         nextLabel={currentStep === 5 ? 'Finish' : 'Next'}
       />
-
-      {/* Full Screen Match Manager Modal */}
-      {showMatchManager && (
-        <div className="fixed inset-0 bg-white z-50 flex flex-col overflow-hidden safe-area">
-          <div className="flex-shrink-0 bg-white border-b border-gray-200 px-3 py-3 flex justify-between items-center safe-top">
-            <h3 className="text-lg font-bold text-gray-800">Match Manager</h3>
-            <button
-              onClick={() => setShowMatchManager(false)}
-              className="text-gray-500 active:text-gray-700 text-3xl leading-none w-11 h-11 flex items-center justify-center touch-manipulation"
-            >
-              ×
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-3">
-            <MatchManager
-              matches={matchesHook.matches}
-              currentMatchId={matchesHook.currentMatchId}
-              onSelectMatch={handleSelectMatch}
-              onAddMatch={handleAddMatch}
-              onDeleteMatch={matchesHook.deleteMatch}
-              onDuplicateMatch={handleDuplicateMatch}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Manage Actions Modal */}
       {showManageActions && (

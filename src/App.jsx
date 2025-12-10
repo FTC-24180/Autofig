@@ -259,8 +259,6 @@ function App() {
           onAddMatch={handleAddMatch}
           onDeleteMatch={matchesHook.deleteMatch}
           onDuplicateMatch={handleDuplicateMatch}
-          onConfigureActions={() => setShowManageActions(true)}
-          onConfigureStartPositions={() => setShowManageStartPositions(true)}
           onExportJSON={downloadJSON}
           onSaveTemplate={() => setShowSaveTemplate(true)}
           onLoadTemplate={() => {}}
@@ -270,6 +268,18 @@ function App() {
           themePreference={themePreference}
           resolvedTheme={resolvedTheme}
           onThemeChange={setThemePreference}
+          actionGroups={actionGroupsHook.actionGroups}
+          onRenameGroup={actionGroupsHook.renameGroup}
+          onDeleteGroup={actionGroupsHook.deleteGroup}
+          onAddActionToGroup={actionGroupsHook.addActionToGroup}
+          onUpdateActionInGroup={actionGroupsHook.updateActionInGroup}
+          onDeleteActionInGroup={actionGroupsHook.deleteActionInGroup}
+          onAddCustomGroup={actionGroupsHook.addCustomGroup}
+          onExportConfig={exportConfig}
+          startPositions={startPositionsHook.startPositions}
+          onAddStartPosition={startPositionsHook.addStartPosition}
+          onUpdateStartPosition={startPositionsHook.updateStartPosition}
+          onDeleteStartPosition={startPositionsHook.deleteStartPosition}
         />
 
         <div className="flex-1 flex items-center justify-center p-6">
@@ -439,8 +449,6 @@ function App() {
         onAddMatch={handleAddMatch}
         onDeleteMatch={matchesHook.deleteMatch}
         onDuplicateMatch={handleDuplicateMatch}
-        onConfigureActions={() => setShowManageActions(true)}
-        onConfigureStartPositions={() => setShowManageStartPositions(true)}
         onExportJSON={downloadJSON}
         onSaveTemplate={() => setShowSaveTemplate(true)}
         onLoadTemplate={() => {}}
@@ -450,6 +458,18 @@ function App() {
         themePreference={themePreference}
         resolvedTheme={resolvedTheme}
         onThemeChange={setThemePreference}
+        actionGroups={actionGroupsHook.actionGroups}
+        onRenameGroup={actionGroupsHook.renameGroup}
+        onDeleteGroup={actionGroupsHook.deleteGroup}
+        onAddActionToGroup={actionGroupsHook.addActionToGroup}
+        onUpdateActionInGroup={actionGroupsHook.updateActionInGroup}
+        onDeleteActionInGroup={actionGroupsHook.deleteActionInGroup}
+        onAddCustomGroup={actionGroupsHook.addCustomGroup}
+        onExportConfig={exportConfig}
+        startPositions={startPositionsHook.startPositions}
+        onAddStartPosition={startPositionsHook.addStartPosition}
+        onUpdateStartPosition={startPositionsHook.updateStartPosition}
+        onDeleteStartPosition={startPositionsHook.deleteStartPosition}
       />
 
       {/* Main Content - Full Screen Wizard */}

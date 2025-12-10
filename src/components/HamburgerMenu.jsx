@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { ActionsConfigContent } from './config/ActionsConfigContent';
+import { StartPositionsConfigContent } from './config/StartPositionsConfigContent';
 
 const THEME_OPTIONS = [
   { 
@@ -37,8 +39,6 @@ export function HamburgerMenu({
   onAddMatch,
   onDeleteMatch,
   onDuplicateMatch,
-  onConfigureActions,
-  onConfigureStartPositions, 
   onExportJSON, 
   onSaveTemplate,
   onLoadTemplate,
@@ -47,20 +47,41 @@ export function HamburgerMenu({
   onDeletePreset,
   themePreference = 'system',
   resolvedTheme = 'light',
-  onThemeChange = () => {}
+  onThemeChange = () => {},
+  // Props for inline configuration
+  actionGroups,
+  onRenameGroup,
+  onDeleteGroup,
+  onAddActionToGroup,
+  onUpdateActionInGroup,
+  onDeleteActionInGroup,
+  onAddCustomGroup,
+  onExportConfig,
+  startPositions,
+  onAddStartPosition,
+  onUpdateStartPosition,
+  onDeleteStartPosition
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showActionsConfig, setShowActionsConfig] = useState(false);
+  const [showPositionsConfig, setShowPositionsConfig] = useState(false);
 
   const closeMenu = () => {
     setIsOpen(false);
     setShowConfig(false);
     setShowTemplates(false);
+    setShowActionsConfig(false);
+    setShowPositionsConfig(false);
   };
 
   const goBack = () => {
-    if (showTemplates) {
+    if (showActionsConfig || showPositionsConfig) {
+      setShowActionsConfig(false);
+      setShowPositionsConfig(false);
+      setShowConfig(true);
+    } else if (showTemplates) {
       setShowTemplates(false);
     } else if (showConfig) {
       setShowConfig(false);
@@ -138,7 +159,7 @@ export function HamburgerMenu({
         <div className="flex flex-col h-full pt-safe">
           {/* Header */}
           <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex items-center gap-3 safe-top">
-            {(showConfig || showTemplates) && (
+            {(showConfig || showTemplates || showActionsConfig || showPositionsConfig) && (
               <button
                 onClick={goBack}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 active:bg-gray-200 rounded-lg touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -149,13 +170,13 @@ export function HamburgerMenu({
               </button>
             )}
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex-1">
-              {showConfig ? 'Configuration' : showTemplates ? 'Templates' : 'Menu'}
+              {showActionsConfig ? 'Configure Actions' : showPositionsConfig ? 'Start Positions' : showConfig ? 'Configuration' : showTemplates ? 'Templates' : 'Menu'}
             </h2>
           </div>
 
           {/* Menu Items */}
           <div className="flex-1 overflow-y-auto p-4">
-            {!showConfig && !showTemplates ? (
+            {!showConfig && !showTemplates && !showActionsConfig && !showPositionsConfig ? (
               // Main Menu - Matches First
               <div className="space-y-2">
                 <div className="mb-4">
@@ -208,6 +229,7 @@ export function HamburgerMenu({
                                 {match.partnerTeam ? `Partner: ${match.partnerTeam}` : 'No partner'}
                                 {' • '}
                                 {match.actions?.length || 0} action{match.actions?.length !== 1 ? 's' : ''}
+
                               </div>
                             </div>
                             <div className="flex gap-1 ml-2">
@@ -375,8 +397,8 @@ export function HamburgerMenu({
               <div className="space-y-2">
                 <button
                   onClick={() => {
-                    onConfigureActions();
-                    closeMenu();
+                    setShowConfig(false);
+                    setShowActionsConfig(true);
                   }}
                   className="w-full flex items-center gap-3 p-3 text-left bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 rounded-lg transition touch-manipulation min-h-[48px]"
                 >
@@ -391,8 +413,8 @@ export function HamburgerMenu({
 
                 <button
                   onClick={() => {
-                    onConfigureStartPositions();
-                    closeMenu();
+                    setShowConfig(false);
+                    setShowPositionsConfig(true);
                   }}
                   className="w-full flex items-center gap-3 p-3 text-left bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 rounded-lg transition touch-manipulation min-h-[48px]"
                 >
@@ -410,6 +432,27 @@ export function HamburgerMenu({
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Advanced configuration for action types and starting positions. Changes apply to all matches.</p>
                 </div>
               </div>
+            ) : showActionsConfig ? (
+              // Actions Configuration View
+              <ActionsConfigContent
+                actionGroups={actionGroups}
+                onRenameGroup={onRenameGroup}
+                onDeleteGroup={onDeleteGroup}
+                onAddActionToGroup={onAddActionToGroup}
+                onUpdateActionInGroup={onUpdateActionInGroup}
+                onDeleteActionInGroup={onDeleteActionInGroup}
+                onAddCustomGroup={onAddCustomGroup}
+                onExportConfig={onExportConfig}
+              />
+            ) : showPositionsConfig ? (
+              // Start Positions Configuration View
+              <StartPositionsConfigContent
+                startPositions={startPositions}
+                onAddStartPosition={onAddStartPosition}
+                onUpdateStartPosition={onUpdateStartPosition}
+                onDeleteStartPosition={onDeleteStartPosition}
+                onExportConfig={onExportConfig}
+              />
             ) : (
               // Templates Submenu
               <div>

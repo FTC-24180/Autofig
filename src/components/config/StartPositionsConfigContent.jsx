@@ -1,0 +1,101 @@
+import { useState } from 'react';
+
+function AddStartPositionForm({ onAdd }) {
+  const [id, setId] = useState('');
+  const [label, setLabel] = useState('');
+  return (
+    <div className="flex flex-col gap-2 mt-2">
+      <input
+        placeholder="position id"
+        value={id}
+        onChange={(e) => setId(e.target.value)}
+        className="px-2 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded text-xs w-full"
+      />
+      <input
+        placeholder="label"
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        className="px-2 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded text-xs w-full"
+      />
+      <button
+        onClick={() => {
+          if (!id) return;
+          onAdd({ id, label: label || id });
+          setId('');
+          setLabel('');
+        }}
+        className="flex items-center justify-center gap-1 py-1 px-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs"
+      >
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+        Add Position
+      </button>
+    </div>
+  );
+}
+
+export function StartPositionsConfigContent({
+  startPositions,
+  onAddStartPosition,
+  onUpdateStartPosition,
+  onDeleteStartPosition,
+  onExportConfig
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Configure preset starting positions
+        </p>
+        {onExportConfig && (
+          <button 
+            onClick={onExportConfig} 
+            className="text-xs text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 flex-shrink-0"
+          >
+            Export
+          </button>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {startPositions.map((pos, idx) => (
+          <div key={pos.id + idx} className="border border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 p-2 rounded">
+            <div className="flex gap-2 items-center mb-2">
+              <span className="text-base flex-shrink-0">??</span>
+              <div className="flex-1 min-w-0 space-y-2">
+                <input
+                  value={pos.id}
+                  onChange={(e) => onUpdateStartPosition(idx, { id: e.target.value })}
+                  className="px-2 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-100 rounded text-xs w-full"
+                  placeholder="ID"
+                />
+                <input
+                  value={pos.label}
+                  onChange={(e) => onUpdateStartPosition(idx, { label: e.target.value })}
+                  className="px-2 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-100 rounded text-xs w-full"
+                  placeholder="Label"
+                />
+              </div>
+              <button
+                onClick={() => onDeleteStartPosition(idx)}
+                className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-slate-700 text-red-600 flex-shrink-0"
+                title="Delete position"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <AddStartPositionForm onAdd={onAddStartPosition} />
+      </div>
+
+      <div className="p-2 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded text-xs text-blue-800 dark:text-blue-200">
+        <strong>Note:</strong> Custom position is always available
+      </div>
+    </div>
+  );
+}

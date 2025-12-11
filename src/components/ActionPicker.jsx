@@ -7,13 +7,13 @@ export function ActionPicker({
   PICKUP_IDS
 }) {
   return (
-    <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-3 bg-white dark:bg-slate-900">
+    <div className="space-y-3">
       {Object.entries(actionGroups)
         .filter(([groupKey]) => groupKey !== 'start') // Filter out start group
         .map(([groupKey, group]) => {
           const isExpanded = expandedGroup === groupKey;
           return (
-            <div key={groupKey} className="mb-3 last:mb-0">
+            <div key={groupKey}>
               <button
                 onClick={() => setExpandedGroup(isExpanded ? null : groupKey)}
                 className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition touch-manipulation min-h-[56px]"

@@ -505,6 +505,7 @@ function App() {
             onUpdateActionConfig={updateActionConfig}
             onClearAll={clearAll}
             dragHandlers={dragHandlers}
+            isActive={currentStep === 2}
           />
           <Step6QRCode
             config={getConfig()}

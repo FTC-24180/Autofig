@@ -1,4 +1,4 @@
-import { useState } from 'react';
+Ôªøimport { useState } from 'react';
 import { ActionsConfigContent } from './config/ActionsConfigContent';
 import { StartPositionsConfigContent } from './config/StartPositionsConfigContent';
 
@@ -94,12 +94,12 @@ export function HamburgerMenu({
 
   const handleClearAllData = () => {
     const confirmed = confirm(
-      '?? Clear All Data?\n\n' +
+      '‚ö†Ô∏è Clear All Data?\n\n' +
       'This will permanently delete:\n' +
-      'ï All configured matches\n' +
-      'ï All saved templates\n' +
-      'ï All custom action groups\n' +
-      'ï All start positions\n\n' +
+      '‚Ä¢ All configured matches\n' +
+      '‚Ä¢ All saved templates\n' +
+      '‚Ä¢ All custom action groups\n' +
+      '‚Ä¢ All start positions\n\n' +
       'This action cannot be undone!\n\n' +
       'Are you sure you want to continue?'
     );
@@ -107,7 +107,7 @@ export function HamburgerMenu({
     if (confirmed) {
       // Double confirmation for safety
       const doubleConfirm = confirm(
-        '?? FINAL CONFIRMATION\n\n' +
+        '‚ö†Ô∏è FINAL CONFIRMATION\n\n' +
         'This will delete ALL data. Are you absolutely sure?'
       );
 
@@ -117,12 +117,12 @@ export function HamburgerMenu({
           localStorage.clear();
           
           // Show success message
-          alert('? All data cleared successfully!\n\nThe page will now reload.');
+          alert('‚úÖ All data cleared successfully!\n\nThe page will now reload.');
           
           // Reload the page to reinitialize with defaults
           window.location.reload();
         } catch (error) {
-          alert('? Error clearing data: ' + error.message);
+          alert('‚ùå Error clearing data: ' + error.message);
         }
       }
     }
@@ -231,7 +231,7 @@ export function HamburgerMenu({
                               </div>
                               <div className="text-xs text-gray-600 dark:text-gray-300">
                                 {match.partnerTeam ? `Partner: ${match.partnerTeam}` : 'No partner'}
-                                {' ï '}
+                                {' ‚Ä¢ '}
                                 {match.actions?.length || 0} action{match.actions?.length !== 1 ? 's' : ''}
                               </div>
                             </div>
@@ -295,7 +295,7 @@ export function HamburgerMenu({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      <span className="font-medium text-gray-800 dark:text-gray-100">Configuration</span>
+                      <span className="font-medium text-gray-800 dark:text-gray-100">Configure Actions</span>
                     </div>
                     <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -444,7 +444,7 @@ export function HamburgerMenu({
                         Android
                       </h4>
                       <ol className="text-sm text-gray-700 dark:text-gray-300 space-y-1 list-decimal list-inside">
-                        <li>Tap the <strong>3-dot menu</strong> (?) in Chrome</li>
+                        <li>Tap the <strong>3-dot menu</strong> (‚ãÆ) in Chrome</li>
                         <li>Tap <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong></li>
                         <li>Tap <strong>"Install"</strong> to confirm</li>
                         <li>App opens like a native app!</li>
@@ -460,7 +460,7 @@ export function HamburgerMenu({
                         Desktop (Chrome/Edge)
                       </h4>
                       <ol className="text-sm text-gray-700 dark:text-gray-300 space-y-1 list-decimal list-inside">
-                        <li>Look for the <strong>install icon</strong> (?) in the address bar</li>
+                        <li>Look for the <strong>install icon</strong> (‚äï) in the address bar</li>
                         <li>Click <strong>"Install"</strong></li>
                         <li>App opens in its own window!</li>
                       </ol>
@@ -520,19 +520,19 @@ export function HamburgerMenu({
                   </div>
                   <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2 bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
                     <li className="flex items-start gap-2">
-                      <span className="font-bold text-indigo-600 dark:text-indigo-400">ï</span>
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400">‚Ä¢</span>
                       <span>Swipe left/right on wizard to navigate between steps</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="font-bold text-indigo-600 dark:text-indigo-400">ï</span>
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400">‚Ä¢</span>
                       <span>Drag actions to reorder them in your sequence</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="font-bold text-indigo-600 dark:text-indigo-400">ï</span>
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400">‚Ä¢</span>
                       <span>Use templates to quickly set up common match configurations</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="font-bold text-indigo-600 dark:text-indigo-400">ï</span>
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400">‚Ä¢</span>
                       <span>Export all matches to backup your configurations</span>
                     </li>
                   </ul>
@@ -570,7 +570,7 @@ export function HamburgerMenu({
                 {/* Version */}
                 <div className="text-center pt-4 border-t border-gray-200 dark:border-slate-800">
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Version 2.0 ï PWA-Enabled
+                    Version 2.0 ‚Ä¢ PWA-Enabled
                   </p>
                 </div>
               </div>

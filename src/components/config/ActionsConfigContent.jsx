@@ -110,7 +110,7 @@ function AddActionForm({ groupKey, onAdd }) {
 
         <button
           onClick={addConfigPair}
-          className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800"
+          className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
         >
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -159,145 +159,186 @@ export function ActionsConfigContent({
   onAddCustomGroup,
   onExportConfig
 }) {
+  const [expandedGroups, setExpandedGroups] = useState(() => {
+    // All groups collapsed by default
+    return {};
+  });
+
+  const toggleGroup = (groupKey) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupKey]: !prev[groupKey]
+    }));
+  };
+
   return (
     <div className="space-y-3">
       <p className="text-xs text-gray-500 dark:text-gray-400">
         Manage action groups and types
       </p>
 
-      {Object.entries(actionGroups).map(([gk, group]) => (
-        <div key={gk} className="border border-gray-300 dark:border-slate-700 p-2 rounded bg-gray-50 dark:bg-slate-800">
-          <div className="flex items-center justify-between mb-2 gap-2">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <span className="text-base flex-shrink-0">{group.icon}</span>
-              <input
-                value={group.label}
-                onChange={(e) => onRenameGroup(gk, e.target.value)}
-                className="font-medium text-sm text-gray-800 dark:text-gray-100 dark:bg-slate-700 px-2 py-1 border border-gray-300 dark:border-slate-600 rounded flex-1 min-w-0"
-              />
-            </div>
-            <button 
-              onClick={() => onDeleteGroup(gk)} 
-              className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-slate-600 text-red-600 flex-shrink-0"
-              title="Delete group"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          </div>
+      {Object.entries(actionGroups).map(([gk, group]) => {
+        const isExpanded = expandedGroups[gk] === true; // Only expanded if explicitly set to true
+        const actionCount = group.actions?.length || 0;
 
-          <div className="space-y-2">
-            {group.actions.map((act, idx) => (
-              <div key={act.id + idx} className="border border-gray-200 dark:border-slate-600 p-2 rounded bg-white dark:bg-slate-900">
-                <div className="flex gap-2 items-start mb-2">
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <input
-                      value={act.id}
-                      onChange={(e) => onUpdateActionInGroup(gk, idx, { id: e.target.value })}
-                      className="px-2 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded w-full text-xs"
-                      placeholder="ID"
-                    />
-                    <input
-                      value={act.label}
-                      onChange={(e) => onUpdateActionInGroup(gk, idx, { label: e.target.value })}
-                      className="px-2 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded w-full text-xs"
-                      placeholder="Label"
-                    />
-                  </div>
-                  <button
-                    onClick={() => onDeleteActionInGroup(gk, idx)}
-                    className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-slate-700 text-red-600 flex-shrink-0"
-                    title="Delete action"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-
-                {act.config && Object.keys(act.config).length > 0 && (
-                  <div className="mt-2 space-y-1 text-xs">
-                    {Object.entries(act.config).map(([key, value], configIdx) => {
-                      const isNumber = typeof value === 'number';
-                      return (
-                        <div key={configIdx} className="flex gap-1 items-center">
-                          <input
-                            value={key}
-                            onChange={(e) => {
-                              const newConfig = { ...act.config };
-                              delete newConfig[key];
-                              newConfig[e.target.value] = value;
-                              onUpdateActionInGroup(gk, idx, { config: newConfig });
-                            }}
-                            className="px-1 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded w-16 text-xs"
-                          />
-                          <select
-                            value={isNumber ? 'number' : 'text'}
-                            onChange={(e) => {
-                              const newConfig = { ...act.config };
-                              if (e.target.value === 'number') {
-                                newConfig[key] = parseFloat(value) || 0;
-                              } else {
-                                newConfig[key] = String(value);
-                              }
-                              onUpdateActionInGroup(gk, idx, { config: newConfig });
-                            }}
-                            className="px-1 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded text-xs"
-                          >
-                            <option value="number">Num</option>
-                            <option value="text">Text</option>
-                          </select>
-                          <input
-                            type={isNumber ? 'number' : 'text'}
-                            value={value}
-                            onChange={(e) => {
-                              const newValue = isNumber 
-                                ? (parseFloat(e.target.value) || 0)
-                                : e.target.value;
-                              const newConfig = { ...act.config, [key]: newValue };
-                              onUpdateActionInGroup(gk, idx, { config: newConfig });
-                            }}
-                            className="px-1 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded flex-1 text-xs min-w-0"
-                          />
-                          <button
-                            onClick={() => {
-                              const newConfig = { ...act.config };
-                              delete newConfig[key];
-                              onUpdateActionInGroup(gk, idx, { 
-                                config: Object.keys(newConfig).length > 0 ? newConfig : undefined 
-                              });
-                            }}
-                            className="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-slate-700 text-red-600 flex-shrink-0"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
+        return (
+          <div key={gk} className="border border-gray-300 dark:border-slate-700 rounded bg-gray-50 dark:bg-slate-800 overflow-hidden">
+            {/* Group Header - Always Visible */}
+            <div className="p-2">
+              <div className="flex items-center justify-between gap-2">
                 <button
-                  onClick={() => {
-                    const newConfig = act.config ? { ...act.config } : {};
-                    newConfig[`field${Object.keys(newConfig).length + 1}`] = 0;
-                    onUpdateActionInGroup(gk, idx, { config: newConfig });
-                  }}
-                  className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 mt-1"
+                  onClick={() => toggleGroup(gk)}
+                  className="flex items-center gap-2 flex-1 min-w-0 hover:bg-gray-100 dark:hover:bg-slate-700 rounded p-1 transition touch-manipulation"
                 >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <svg 
+                    className={`w-4 h-4 text-gray-600 dark:text-gray-300 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
-                  Add field
+                  <span className="text-base flex-shrink-0">{group.icon}</span>
+                  <input
+                    value={group.label}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      onRenameGroup(gk, e.target.value);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="font-medium text-sm text-gray-800 dark:text-gray-100 dark:bg-slate-700 px-2 py-1 border border-gray-300 dark:border-slate-600 rounded flex-1 min-w-0"
+                  />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                    {actionCount} {actionCount === 1 ? 'action' : 'actions'}
+                  </span>
+                </button>
+                <button 
+                  onClick={() => onDeleteGroup(gk)} 
+                  className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-slate-600 text-red-600 flex-shrink-0 touch-manipulation"
+                  title="Delete group"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
                 </button>
               </div>
-            ))}
+            </div>
 
-            <AddActionForm groupKey={gk} onAdd={(a) => onAddActionToGroup(gk, a)} />
+            {/* Collapsible Content */}
+            {isExpanded && (
+              <div className="px-2 pb-2 space-y-2">
+                {group.actions.map((act, idx) => (
+                  <div key={act.id + idx} className="border border-gray-200 dark:border-slate-600 p-2 rounded bg-white dark:bg-slate-900">
+                    <div className="flex gap-2 items-start mb-2">
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <input
+                          value={act.id}
+                          onChange={(e) => onUpdateActionInGroup(gk, idx, { id: e.target.value })}
+                          className="px-2 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded w-full text-xs"
+                          placeholder="ID"
+                        />
+                        <input
+                          value={act.label}
+                          onChange={(e) => onUpdateActionInGroup(gk, idx, { label: e.target.value })}
+                          className="px-2 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded w-full text-xs"
+                          placeholder="Label"
+                        />
+                      </div>
+                      <button
+                        onClick={() => onDeleteActionInGroup(gk, idx)}
+                        className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-slate-700 text-red-600 flex-shrink-0 touch-manipulation"
+                        title="Delete action"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {act.config && Object.keys(act.config).length > 0 && (
+                      <div className="mt-2 space-y-1 text-xs">
+                        {Object.entries(act.config).map(([key, value], configIdx) => {
+                          const isNumber = typeof value === 'number';
+                          return (
+                            <div key={configIdx} className="flex gap-1 items-center">
+                              <input
+                                value={key}
+                                onChange={(e) => {
+                                  const newConfig = { ...act.config };
+                                  delete newConfig[key];
+                                  newConfig[e.target.value] = value;
+                                  onUpdateActionInGroup(gk, idx, { config: newConfig });
+                                }}
+                                className="px-1 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded w-16 text-xs"
+                              />
+                              <select
+                                value={isNumber ? 'number' : 'text'}
+                                onChange={(e) => {
+                                  const newConfig = { ...act.config };
+                                  if (e.target.value === 'number') {
+                                    newConfig[key] = parseFloat(value) || 0;
+                                  } else {
+                                    newConfig[key] = String(value);
+                                  }
+                                  onUpdateActionInGroup(gk, idx, { config: newConfig });
+                                }}
+                                className="px-1 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded text-xs"
+                              >
+                                <option value="number">Num</option>
+                                <option value="text">Text</option>
+                              </select>
+                              <input
+                                type={isNumber ? 'number' : 'text'}
+                                value={value}
+                                onChange={(e) => {
+                                  const newValue = isNumber 
+                                    ? (parseFloat(e.target.value) || 0)
+                                    : e.target.value;
+                                  const newConfig = { ...act.config, [key]: newValue };
+                                  onUpdateActionInGroup(gk, idx, { config: newConfig });
+                                }}
+                                className="px-1 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 rounded flex-1 text-xs min-w-0"
+                              />
+                              <button
+                                onClick={() => {
+                                  const newConfig = { ...act.config };
+                                  delete newConfig[key];
+                                  onUpdateActionInGroup(gk, idx, { 
+                                    config: Object.keys(newConfig).length > 0 ? newConfig : undefined 
+                                  });
+                                }}
+                                className="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-slate-700 text-red-600 flex-shrink-0"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        const newConfig = act.config ? { ...act.config } : {};
+                        newConfig[`field${Object.keys(newConfig).length + 1}`] = 0;
+                        onUpdateActionInGroup(gk, idx, { config: newConfig });
+                      }}
+                      className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 mt-1"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add field
+                    </button>
+                  </div>
+                ))}
+
+                <AddActionForm groupKey={gk} onAdd={(a) => onAddActionToGroup(gk, a)} />
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <AddGroupForm onAdd={onAddCustomGroup} />
     </div>

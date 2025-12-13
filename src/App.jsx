@@ -8,6 +8,7 @@ import { useThemePreference } from './hooks/useThemePreference';
 import { useWizardActions } from './hooks/useWizardActions';
 import { useMatchHandlers } from './hooks/useMatchHandlers';
 import { useTemplateModal } from './hooks/useTemplateModal';
+import { useServiceWorker } from './hooks/useServiceWorker';
 import { HamburgerMenu } from './components/HamburgerMenu';
 import { ManageActionsModal } from './components/ManageActionsModal';
 import { ManageStartPositionsModal } from './components/ManageStartPositionsModal';
@@ -15,6 +16,7 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { MainWizardView } from './components/MainWizardView';
 import { SaveTemplateModal } from './components/SaveTemplateModal';
 import { LoadTemplateModal } from './components/LoadTemplateModal';
+import { UpdateNotification } from './components/UpdateNotification';
 import { isValidReorder } from './utils/actionUtils';
 import { exportMatchesJSON, exportConfigJSON } from './utils/configUtils';
 import { loadPresetIntoMatches, loadConfigPreset } from './utils/presetUtils';
@@ -24,6 +26,7 @@ function App() {
   // Modal state
   const [showManageActions, setShowManageActions] = useState(false);
   const [showManageStartPositions, setShowManageStartPositions] = useState(false);
+  const [showUpdateNotification, setShowUpdateNotification] = useState(false);
 
   // Ref for HamburgerMenu
   const hamburgerMenuRef = useRef(null);
@@ -34,6 +37,7 @@ function App() {
   const startPositionsHook = useStartPositions();
   const matchesHook = useMatches();
   const { preference: themePreference, setPreference: setThemePreference, resolvedTheme } = useThemePreference();
+  const { updateAvailable, updateApp, currentVersion } = useServiceWorker();
 
   const isDarkTheme = resolvedTheme === 'dark';
 
@@ -65,6 +69,13 @@ function App() {
     handleSelectMatchFromQRCode,
     handleDuplicateMatch
   } = matchHandlers;
+
+  // Show update notification when update is available
+  useEffect(() => {
+    if (updateAvailable) {
+      setShowUpdateNotification(true);
+    }
+  }, [updateAvailable]);
 
   // Config management for action groups and start positions (NOT match data)
   const getTemplateConfig = () => ({
@@ -113,15 +124,6 @@ function App() {
     },
     (from, to) => isValidReorder(currentMatch?.actions || [], from, to)
   );
-
-  // Register service worker
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch((error) => {
-        console.error('Service Worker registration failed:', error);
-      });
-    }
-  }, []);
 
   // Calculate theme
   const theme = getThemeForAlliance(currentMatch?.alliance, isDarkTheme);
@@ -191,6 +193,15 @@ function App() {
             onClose={() => setShowLoadTemplate(false)}
           />
         )}
+
+        {/* Update Notification */}
+        {showUpdateNotification && (
+          <UpdateNotification
+            onUpdate={updateApp}
+            onDismiss={() => setShowUpdateNotification(false)}
+            version={currentVersion}
+          />
+        )}
       </>
     );
   }
@@ -228,8 +239,6 @@ function App() {
 
       <HamburgerMenu ref={hamburgerMenuRef} {...menuProps} />
 
-      {/* Remove Manage Actions and Start Positions Modals as they're now in the hamburger menu */}
-
       {/* Save Template Modal */}
       {showSaveTemplate && (
         <SaveTemplateModal
@@ -248,6 +257,15 @@ function App() {
           onLoadPreset={loadPreset}
           onDeletePreset={deletePreset}
           onClose={() => setShowLoadTemplate(false)}
+        />
+      )}
+
+      {/* Update Notification */}
+      {showUpdateNotification && (
+        <UpdateNotification
+          onUpdate={updateApp}
+          onDismiss={() => setShowUpdateNotification(false)}
+          version={currentVersion}
         />
       )}
     </>

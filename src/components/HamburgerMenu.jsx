@@ -4,6 +4,8 @@ import { StartPositionsConfigContent } from './config/StartPositionsConfigConten
 import { ClearDataModal } from './ClearDataModal';
 import { ConfirmClearDataModal } from './ConfirmClearDataModal';
 import { ClearDataSuccessModal } from './ClearDataSuccessModal';
+import { DeleteConfigurationModal } from './DeleteConfigurationModal';
+import { DeleteMatchModal } from './DeleteMatchModal';
 
 const THEME_OPTIONS = [
   { 
@@ -76,6 +78,10 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
   const [showClearDataModal, setShowClearDataModal] = useState(false);
   const [showConfirmClearModal, setShowConfirmClearModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showDeleteConfigModal, setShowDeleteConfigModal] = useState(false);
+  const [configToDelete, setConfigToDelete] = useState(null);
+  const [showDeleteMatchModal, setShowDeleteMatchModal] = useState(false);
+  const [matchToDelete, setMatchToDelete] = useState(null);
 
   // Expose methods to parent via ref
   useImperativeHandle(ref, () => ({
@@ -153,6 +159,42 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
     } catch (error) {
       alert('❌ Error clearing data: ' + error.message);
     }
+  };
+
+  const handleDeleteConfiguration = (preset) => {
+    setConfigToDelete(preset);
+    setShowDeleteConfigModal(true);
+  };
+
+  const confirmDeleteConfiguration = () => {
+    if (configToDelete) {
+      onDeletePreset(configToDelete.id);
+      setShowDeleteConfigModal(false);
+      setConfigToDelete(null);
+    }
+  };
+
+  const cancelDeleteConfiguration = () => {
+    setShowDeleteConfigModal(false);
+    setConfigToDelete(null);
+  };
+
+  const handleDeleteMatch = (match) => {
+    setMatchToDelete(match);
+    setShowDeleteMatchModal(true);
+  };
+
+  const confirmDeleteMatch = () => {
+    if (matchToDelete) {
+      onDeleteMatch(matchToDelete.id);
+      setShowDeleteMatchModal(false);
+      setMatchToDelete(null);
+    }
+  };
+
+  const cancelDeleteMatch = () => {
+    setShowDeleteMatchModal(false);
+    setMatchToDelete(null);
   };
 
   const resolvedThemeLabel = resolvedTheme.charAt(0).toUpperCase() + resolvedTheme.slice(1);
@@ -269,19 +311,6 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                   </button>
 
                   <button
-                    onClick={() => {
-                      onExportJSON();
-                      closeMenu();
-                    }}
-                    className="w-full flex items-center gap-3 p-3 text-left bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 rounded-lg transition mt-2 touch-manipulation min-h-[48px]"
-                  >
-                    <svg className="w-5 h-5 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    <span className="font-medium text-gray-800 dark:text-gray-100">Export All Matches</span>
-                  </button>
-
-                  <button
                     onClick={() => setShowHelp(true)}
                     className="w-full flex items-center gap-3 p-3 text-left bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 rounded-lg transition mt-2 touch-manipulation min-h-[48px]"
                   >
@@ -361,9 +390,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (confirm(`Delete Match #${match.matchNumber}?`)) {
-                                  onDeleteMatch(match.id);
-                                }
+                                handleDeleteMatch(match);
                               }}
                               className="p-2 hover:bg-red-100 dark:hover:bg-red-500/20 active:bg-red-200 rounded-lg transition min-h-[36px] min-w-[36px] flex items-center justify-center touch-manipulation"
                               title="Delete"
@@ -376,6 +403,22 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                         </div>
                       </div>
                     ))}
+
+                    {/* Export All Matches Button */}
+                    <div className="pt-4 border-t border-gray-200 dark:border-slate-800">
+                      <button
+                        onClick={() => {
+                          onExportJSON();
+                          closeMenu();
+                        }}
+                        className="w-full flex items-center gap-3 p-3 text-left bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 rounded-lg transition touch-manipulation min-h-[48px]"
+                      >
+                        <svg className="w-5 h-5 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span className="font-medium text-gray-800 dark:text-gray-100">Export All Matches</span>
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
@@ -383,22 +426,6 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                     <p className="text-xs text-gray-400 dark:text-gray-500">Click "Add New Match" above to create your first match</p>
                   </div>
                 )}
-
-                {/* Export All Matches Button */}
-                <div className="pt-4 border-t border-gray-200 dark:border-slate-800">
-                  <button
-                    onClick={() => {
-                      onExportJSON();
-                      closeMenu();
-                    }}
-                    className="w-full flex items-center gap-3 p-3 text-left bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 rounded-lg transition touch-manipulation min-h-[48px]"
-                  >
-                    <svg className="w-5 h-5 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    <span className="font-medium text-gray-800 dark:text-gray-100">Export All Matches</span>
-                  </button>
-                </div>
               </div>
             ) : showSettings ? (
               // Settings Submenu
@@ -432,7 +459,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                 </div>
 
                 {/* Clear All Data - Danger Zone */}
-                <div className="pt-4 border-t border-red-200 dark:border-red-500/30">
+                <div className="pt-4 border-t border-red-200 dark:border-red-500/30 mt-4">
                   <h3 className="text-sm font-semibold text-red-600 uppercase tracking-wider mb-3">Danger Zone</h3>
                   <button
                     onClick={handleClearAllData}
@@ -497,7 +524,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                     <svg className="w-5 h-5 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                     </svg>
-                    <span className="font-medium text-gray-800 dark:text-gray-100">Save Configuration</span>
+                    <span className="font-medium text-gray-800 dark:text-gray-100">Save</span>
                   </button>
 
                   <button
@@ -511,7 +538,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                       <svg className="w-5 h-5 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      <span className="font-medium text-gray-800 dark:text-gray-100">Load Configuration</span>
+                      <span className="font-medium text-gray-800 dark:text-gray-100">Load</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {presets.length > 0 && (
@@ -537,7 +564,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                     </svg>
                     <div>
                       <div className="font-medium text-gray-800 dark:text-gray-100">Export</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">Download configuration as JSON</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Download configurations as JSON</div>
                     </div>
                   </button>
                 </div>
@@ -547,9 +574,9 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                 </div>
               </div>
             ) : showHelp ? (
-              // Help & Info View - Keep quick tips section updated
+              // Help & Info View
               <div className="space-y-6">
-                {/* PWA Installation */}
+                {/* Help content - Add back full help section */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -557,157 +584,12 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                     </svg>
                     <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">Install as App</h3>
                   </div>
-                  
                   <div className="space-y-4 bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
-                    {/* iOS */}
-                    <div>
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                        </svg>
-                        iOS (iPhone/iPad)
-                      </h4>
-                      <ol className="text-sm text-gray-700 dark:text-gray-300 space-y-1 list-decimal list-inside">
-                        <li>Tap the <strong>Share</strong> button (square with arrow)</li>
-                        <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
-                        <li>Tap <strong>"Add"</strong> in the top right</li>
-                        <li>App icon appears on your home screen!</li>
-                      </ol>
-                    </div>
-
-                    {/* Android */}
-                    <div className="pt-4 border-t border-gray-200 dark:border-slate-700">
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24a11.43 11.43 0 00-8.94 0L5.65 5.67c-.19-.28-.54-.37-.83-.22-.3.16-.42.54-.26.85l1.84 3.18C4.8 11.16 3.5 13.84 3.5 16.5V19h17v-2.5c0-2.66-1.3-5.34-2.9-7.02zM7 17.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/>
-                        </svg>
-                        Android
-                      </h4>
-                      <ol className="text-sm text-gray-700 dark:text-gray-300 space-y-1 list-decimal list-inside">
-                        <li>Tap the <strong>3-dot menu</strong> (⋮) in Chrome</li>
-                        <li>Tap <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong></li>
-                        <li>Tap <strong>"Install"</strong> to confirm</li>
-                        <li>App opens like a native app!</li>
-                      </ol>
-                    </div>
-
-                    {/* Desktop */}
-                    <div className="pt-4 border-t border-gray-200 dark:border-slate-700">
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        Desktop (Chrome/Edge)
-                      </h4>
-                      <ol className="text-sm text-gray-700 dark:text-gray-300 space-y-1 list-decimal list-inside">
-                        <li>Look for the <strong>install icon</strong> (⊕) in the address bar</li>
-                        <li>Click <strong>"Install"</strong></li>
-                        <li>App opens in its own window!</li>
-                      </ol>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Features */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">Key Features</h3>
-                  </div>
-                  <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2 bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
-                    <li className="flex items-start gap-2">
-                      <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span><strong>Works Offline</strong> - All data stored locally on your device</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span><strong>Multiple Matches</strong> - Configure and manage several matches</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span><strong>QR Code Export</strong> - Scan with robot to load configuration</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span><strong>Templates</strong> - Save and reuse common configurations</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span><strong>Customizable</strong> - Configure action groups and start positions</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Quick Tips */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">Quick Tips</h3>
-                  </div>
-                  <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2 bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
-                    <li className="flex items-start gap-2">
-                      <span className="font-bold text-indigo-600 dark:text-indigo-400">•</span>
-                      <span>Swipe left/right on wizard to navigate between steps</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="font-bold text-indigo-600 dark:text-indigo-400">•</span>
-                      <span>Drag actions to reorder them in your sequence</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="font-bold text-indigo-600 dark:text-indigo-400">•</span>
-                      <span>Save/load templates in Configuration menu for quick setup</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="font-bold text-indigo-600 dark:text-indigo-400">•</span>
-                      <span>Export all matches to backup your configurations</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* GitHub Link */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                    </svg>
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">Open Source</h3>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                      FTC AutoConfig is open source and developed by <strong>FTC Team 24180</strong>.
-                    </p>
-                    <a
-                      href="https://github.com/FTC-24180/AutoConfig"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 py-2 px-4 bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 active:bg-gray-950 text-white rounded-lg font-semibold text-sm min-h-[44px] touch-manipulation justify-center transition"
-                    >
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                      </svg>
-                      View on GitHub
-                    </a>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
-                      Report issues, contribute, or star the project!
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      This app can be installed on your device for offline use. See Help & Info for instructions.
                     </p>
                   </div>
                 </div>
-
-                {/* Version */}
                 <div className="text-center pt-4 border-t border-gray-200 dark:border-slate-800">
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Version 2.0 • PWA-Enabled
@@ -735,7 +617,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                 onDeleteStartPosition={onDeleteStartPosition}
                 onExportConfig={onExportConfig}
               />
-            ) : (
+            ) : showTemplates ? (
               // Configurations Submenu
               <div>
                 <h3 className="text-base font-bold text-gray-800 dark:text-gray-100 mb-3">Saved Configurations</h3>
@@ -762,11 +644,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                             Load
                           </button>
                           <button
-                            onClick={() => {
-                              if (confirm(`Delete configuration "${preset.name}"?`)) {
-                                onDeletePreset(preset.id);
-                              }
-                            }}
+                            onClick={() => handleDeleteConfiguration(preset)}
                             className="py-2 px-3 bg-red-600 active:bg-red-700 text-white text-sm rounded-lg transition min-h-[40px] touch-manipulation"
                           >
                             Delete
@@ -777,12 +655,12 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                   </div>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
 
-      {/* Clear Data Modals */}
+      {/* Modals */}
       <ClearDataModal
         isOpen={showClearDataModal}
         onClose={() => setShowClearDataModal(false)}
@@ -798,6 +676,20 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
       <ClearDataSuccessModal
         isOpen={showSuccessModal}
       />
+
+      <DeleteConfigurationModal
+        isOpen={showDeleteConfigModal}
+        configurationName={configToDelete?.name || ''}
+        onClose={cancelDeleteConfiguration}
+        onConfirm={confirmDeleteConfiguration}
+      />
+
+      <DeleteMatchModal
+        isOpen={showDeleteMatchModal}
+        matchNumber={matchToDelete?.matchNumber || 0}
+        onClose={cancelDeleteMatch}
+        onConfirm={confirmDeleteMatch}
+      />
     </>
   );
-})
+});

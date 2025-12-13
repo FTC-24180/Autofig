@@ -34,9 +34,7 @@ export function usePresets() {
   };
 
   const deletePreset = (id) => {
-    if (confirm('Are you sure you want to delete this preset?')) {
-      setPresets(presets.filter(p => p.id !== id));
-    }
+    setPresets(presets.filter(p => p.id !== id));
   };
 
   return {

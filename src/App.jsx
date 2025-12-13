@@ -17,7 +17,7 @@ import { SaveTemplateModal } from './components/SaveTemplateModal';
 import { LoadTemplateModal } from './components/LoadTemplateModal';
 import { isValidReorder } from './utils/actionUtils';
 import { exportMatchesJSON, exportConfigJSON } from './utils/configUtils';
-import { loadPresetIntoMatches } from './utils/presetUtils';
+import { loadPresetIntoMatches, loadConfigPreset } from './utils/presetUtils';
 import { getThemeForAlliance } from './utils/themeUtils';
 
 function App() {
@@ -66,14 +66,16 @@ function App() {
     handleDuplicateMatch
   } = matchHandlers;
 
-  // Config management
+  // Config management for action groups and start positions (NOT match data)
+  const getTemplateConfig = () => ({
+    actionGroups: actionGroupsHook.actionGroups,
+    startPositions: startPositionsHook.startPositions
+  });
+
   const getConfig = () => matchesHook.exportAllMatches();
 
   const exportConfig = () => {
-    const config = {
-      actionGroups: actionGroupsHook.actionGroups,
-      startPositions: startPositionsHook.startPositions
-    };
+    const config = getTemplateConfig();
     exportConfigJSON(config);
   };
 
@@ -83,7 +85,7 @@ function App() {
   };
 
   // Template modal management
-  const templateModal = useTemplateModal(savePreset, getConfig);
+  const templateModal = useTemplateModal(savePreset, getTemplateConfig);
   const {
     showSaveTemplate,
     showLoadTemplate,
@@ -96,9 +98,9 @@ function App() {
     closeSaveTemplate
   } = templateModal;
 
-  // Preset loading
+  // Preset loading - Load configuration preset (action groups and start positions)
   const loadPreset = (preset) => {
-    loadPresetIntoMatches(preset, matchesHook, actionGroupsHook.actionGroups);
+    loadConfigPreset(preset, actionGroupsHook, startPositionsHook);
   };
 
   // Drag and drop

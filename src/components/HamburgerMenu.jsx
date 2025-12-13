@@ -1,6 +1,9 @@
 ﻿import { useState } from 'react';
 import { ActionsConfigContent } from './config/ActionsConfigContent';
 import { StartPositionsConfigContent } from './config/StartPositionsConfigContent';
+import { ClearDataModal } from './ClearDataModal';
+import { ConfirmClearDataModal } from './ConfirmClearDataModal';
+import { ClearDataSuccessModal } from './ClearDataSuccessModal';
 
 const THEME_OPTIONS = [
   { 
@@ -70,6 +73,9 @@ export function HamburgerMenu({
   const [showPositionsConfig, setShowPositionsConfig] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showClearDataModal, setShowClearDataModal] = useState(false);
+  const [showConfirmClearModal, setShowConfirmClearModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const closeMenu = () => {
     setIsOpen(false);
@@ -98,38 +104,30 @@ export function HamburgerMenu({
   };
 
   const handleClearAllData = () => {
-    const confirmed = confirm(
-      '⚠️ Clear All Data?\n\n' +
-      'This will permanently delete:\n' +
-      '• All configured matches\n' +
-      '• All saved templates\n' +
-      '• All custom action groups\n' +
-      '• All start positions\n\n' +
-      'This action cannot be undone!\n\n' +
-      'Are you sure you want to continue?'
-    );
+    setShowClearDataModal(true);
+  };
 
-    if (confirmed) {
-      // Double confirmation for safety
-      const doubleConfirm = confirm(
-        '⚠️ FINAL CONFIRMATION\n\n' +
-        'This will delete ALL data. Are you absolutely sure?'
-      );
+  const handleFirstConfirmation = () => {
+    setShowClearDataModal(false);
+    setShowConfirmClearModal(true);
+  };
 
-      if (doubleConfirm) {
-        try {
-          // Clear all localStorage
-          localStorage.clear();
-          
-          // Show success message
-          alert('✅ All data cleared successfully!\n\nThe page will now reload.');
-          
-          // Reload the page to reinitialize with defaults
-          window.location.reload();
-        } catch (error) {
-          alert('❌ Error clearing data: ' + error.message);
-        }
-      }
+  const handleFinalConfirmation = () => {
+    setShowConfirmClearModal(false);
+    
+    try {
+      // Clear all localStorage
+      localStorage.clear();
+      
+      // Show success modal
+      setShowSuccessModal(true);
+      
+      // Reload the page after a short delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      alert('❌ Error clearing data: ' + error.message);
     }
   };
 
@@ -743,6 +741,23 @@ export function HamburgerMenu({
           </div>
         </div>
       </div>
+
+      {/* Clear Data Modals */}
+      <ClearDataModal
+        isOpen={showClearDataModal}
+        onClose={() => setShowClearDataModal(false)}
+        onConfirm={handleFirstConfirmation}
+      />
+
+      <ConfirmClearDataModal
+        isOpen={showConfirmClearModal}
+        onClose={() => setShowConfirmClearModal(false)}
+        onConfirm={handleFinalConfirmation}
+      />
+
+      <ClearDataSuccessModal
+        isOpen={showSuccessModal}
+      />
     </>
   );
 }

@@ -24,12 +24,10 @@ export function usePresets() {
 
   const savePreset = (name, config) => {
     if (!name.trim()) {
-      alert('Please enter a preset name');
       return false;
     }
     const newPreset = { id: Date.now(), name, config };
     setPresets([...presets, newPreset]);
-    alert('Preset saved!');
     return true;
   };
 

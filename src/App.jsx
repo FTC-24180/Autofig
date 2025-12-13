@@ -88,6 +88,7 @@ function App() {
     showSaveTemplate,
     showLoadTemplate,
     templateName,
+    saveError,
     setTemplateName,
     setShowSaveTemplate,
     setShowLoadTemplate,
@@ -175,6 +176,7 @@ function App() {
             onTemplateNameChange={setTemplateName}
             onSave={handleSaveTemplate}
             onClose={closeSaveTemplate}
+            error={saveError}
           />
         )}
 
@@ -233,6 +235,7 @@ function App() {
           onTemplateNameChange={setTemplateName}
           onSave={handleSaveTemplate}
           onClose={closeSaveTemplate}
+          error={saveError}
         />
       )}
 

@@ -3,8 +3,12 @@
     <!--Command to run on project build-->
     <BuildCommand>npm run build</BuildCommand>
     <!--Command to run on project clean-->
-    <CleanCommand> </CleanCommand>
+    <CleanCommand>
+    </CleanCommand>
     <!--Command to start dev server-->
     <StartupCommand>npm run dev</StartupCommand>
   </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="scripts\" />
+  </ItemGroup>
 </Project>

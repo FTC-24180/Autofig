@@ -1,6 +1,5 @@
-// Import version from external file for easier management
-import { VERSION } from './version.js';
-
+// Version injected at build time from public/version.js
+const VERSION = '__APP_VERSION__';
 const CACHE_NAME = `ftc-autoconfig-v${VERSION}`;
 const RUNTIME_CACHE = `ftc-autoconfig-runtime-v${VERSION}`;
 

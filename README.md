@@ -2,9 +2,13 @@
 
 A Progressive Web App (PWA) for configuring FTC autonomous routines. Built with React and TailwindCSS, this mobile-first application helps teams quickly create, manage, and deploy autonomous configurations for multiple matches.
 
-## Current Version: 2.1.0
+## Current Version: 2.2.1
 
-**To deploy a new version**: Edit `public/version.js` and increment the version number, then build and deploy.
+**To deploy a new version**: 
+1. Edit `public/version.js` - change the `VERSION` constant
+2. Build and deploy - the version will automatically be injected into the service worker
+
+**Single source of truth**: `public/version.js`
 
 ## Quick Start
 

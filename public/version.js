@@ -4,4 +4,4 @@
 // - MINOR (2.1.0 ? 2.2.0): New features, improvements  
 // - MAJOR (2.1.0 ? 3.0.0): Breaking changes, major overhaul
 
-export const VERSION = '2.2.0';
+export const VERSION = '2.2.1';

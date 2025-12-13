@@ -1,4 +1,6 @@
-const VERSION = '2.1.0';
+// Import version from external file for easier management
+import { VERSION } from './version.js';
+
 const CACHE_NAME = `ftc-autoconfig-v${VERSION}`;
 const RUNTIME_CACHE = `ftc-autoconfig-runtime-v${VERSION}`;
 

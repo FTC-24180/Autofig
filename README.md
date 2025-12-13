@@ -2,6 +2,10 @@
 
 A Progressive Web App (PWA) for configuring FTC autonomous routines. Built with React and TailwindCSS, this mobile-first application helps teams quickly create, manage, and deploy autonomous configurations for multiple matches.
 
+## Current Version: 2.1.0
+
+**To deploy a new version**: Edit `public/version.js` and increment the version number, then build and deploy.
+
 ## Quick Start
 
 ### Using the App
@@ -194,6 +198,7 @@ AutoConfig/
 ??? public/              # Static assets
 ?   ??? manifest.json    # PWA manifest
 ?   ??? sw.js           # Service worker
+?   ??? version.js      # App version (increment for updates)
 ??? src/
 ?   ??? components/      # React components
 ?   ?   ??? config/     # Configuration components
@@ -224,6 +229,28 @@ AutoConfig/
 - **State Management**: Uses React hooks + localStorage for persistence
 
 ## Deployment
+
+### Releasing a New Version
+
+**Quick Steps**:
+1. **Edit** `public/version.js` and increment the version:
+   ```javascript
+   export const VERSION = '2.2.0'; // Change this number
+   ```
+
+2. **Build and Deploy**:
+   ```bash
+   git add public/version.js
+   git commit -m "Release v2.2.0"
+   git push origin main
+   ```
+
+3. **Users Auto-Update**: Within minutes of switching back to the app tab, users will see an "Update Available" notification
+
+**Version Guidelines**:
+- **PATCH** (2.1.0 ? 2.1.1): Bug fixes, typos, minor tweaks
+- **MINOR** (2.1.0 ? 2.2.0): New features, improvements, UI changes
+- **MAJOR** (2.1.0 ? 3.0.0): Breaking changes, major redesign, data structure changes
 
 ### Automatic Deployment (GitHub Pages)
 
@@ -281,6 +308,22 @@ Once deployed, users can install the app:
 - **iOS**: Safari ? Share ? Add to Home Screen
 - **Android**: Chrome ? Menu ? Install App
 - **Desktop**: Chrome ? Address bar ? Install icon
+
+### Auto-Update System
+
+The app uses a smart update system that eliminates the need for hard refreshes:
+
+- **When Deployed**: New version is automatically detected when users return to the app
+- **User Experience**: "Update Available" notification with one-click update
+- **No Data Loss**: All matches, templates, and settings are preserved
+- **No Manual Cache Clearing**: Service worker handles everything automatically
+
+**What Users See**:
+1. Deploy new version (after incrementing `public/version.js`)
+2. User switches back to app tab ? Update detected
+3. Banner appears: "Update Available! (v2.2.0)"
+4. User clicks "Update Now" ? App reloads with new version
+5. Done! No hard refresh or cache clearing needed
 
 ### Environment Configuration
 
@@ -348,6 +391,12 @@ All data is stored locally in the browser:
 - Increase QR code size (already optimized for mobile)
 - Try downloading JSON instead
 
+### Update notification not appearing after deployment
+- Verify you incremented the version in `public/version.js`
+- Check browser console for service worker logs
+- Try closing and reopening the app tab
+- Wait a few moments after deployment (service worker needs time to register)
+
 ## Contributing
 
 This is an internal tool for FTC Team 24180. For team members:
@@ -368,3 +417,19 @@ For issues or questions:
 - Create an issue on GitHub
 - Contact the programming team lead
 - Check the wiki (if available) for additional documentation
+
+---
+
+## Version History
+
+### v2.1.0 (Current)
+- ? Auto-update system - no more hard refreshes!
+- ? Combined QR code view for all matches
+- ?? Improved action picker UI
+- ?? Various bug fixes
+
+### v2.0.0
+- ?? Initial PWA release
+- ? Multi-match support
+- ? Configuration management
+- ? QR code generation

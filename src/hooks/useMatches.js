@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getStorageItem, setStorageItem, removeStorageItem, STORAGE_KEYS } from '../utils/storageUtils';
 
+// Schema version for exported match data
+const MATCH_DATA_SCHEMA_VERSION = '1.0.0';
+
 export function useMatches() {
   const [matches, setMatches] = useState(() => {
     const parsed = getStorageItem(STORAGE_KEYS.MATCHES, []);
@@ -82,8 +85,9 @@ export function useMatches() {
   };
 
   const exportAllMatches = () => {
-    // Export in the correct hierarchical structure
+    // Export in the correct hierarchical structure with schema version
     const config = {
+      version: MATCH_DATA_SCHEMA_VERSION,
       matches: matches.map(({ id, matchNumber, partnerTeam, alliance, startPosition, actions }) => ({
         match: {
           number: matchNumber,
@@ -107,6 +111,7 @@ export function useMatches() {
     if (!match) return null;
 
     return {
+      version: MATCH_DATA_SCHEMA_VERSION,
       match: {
         number: match.matchNumber,
         alliance: {
@@ -123,9 +128,11 @@ export function useMatches() {
   };
 
   const importMatches = (config) => {
-    if (config.matches && Array.isArray(config.matches)) {
-      // Handle new format
-      const importedMatches = config.matches.map(item => {
+    // Handle both versioned and legacy formats
+    const matchesArray = config.matches || (config.match ? [{ match: config.match }] : []);
+    
+    if (matchesArray && Array.isArray(matchesArray)) {
+      const importedMatches = matchesArray.map(item => {
         const matchData = item.match || item;
         return {
           id: crypto.randomUUID(),
@@ -162,6 +169,7 @@ export function useMatches() {
     duplicateMatch,
     exportAllMatches,
     exportSingleMatch,
-    importMatches
+    importMatches,
+    SCHEMA_VERSION: MATCH_DATA_SCHEMA_VERSION
   };
 }

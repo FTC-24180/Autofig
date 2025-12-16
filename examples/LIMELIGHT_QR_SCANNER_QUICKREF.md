@@ -8,6 +8,25 @@
 - [ ] Helper classes copied to TeamCode
 - [ ] QR codes generated from AutoConfig web app
 
+## ? Match Number = Primary Key
+
+**Important:** When scanning multiple QR codes:
+- Match numbers are used as primary keys
+- **Later scans OVERWRITE earlier scans** for same match number
+- Allows incremental updates and corrections
+
+**Example:**
+```
+Scan 1: Matches 1, 3, 4, 7
+Scan 2: Matches 1, 5, 6, 7, 8
+Result: 1(new), 3, 4, 5, 6, 7(new), 8
+```
+
+**Use Cases:**
+- ? Update specific match without rescanning all
+- ? Add matches incrementally
+- ? Fix errors in individual matches
+
 ## Controls
 
 | Button | Action |

@@ -7,10 +7,61 @@ The `LimelightQRScannerOpMode` uses the goBILDA Limelight 3A camera to scan QR c
 ## Features
 
 ? **Multiple QR Code Support** - Scan multiple QR codes and merge into single file  
+? **Smart Merge** - Match numbers are primary keys; newer scans overwrite duplicates  
 ? **Real-time Preview** - View QR code data before saving  
 ? **Error Handling** - Validates JSON format and provides clear error messages  
 ? **Telemetry Feedback** - Shows scan status and match counts  
 ? **Easy Recovery** - Clear scans and retry if needed  
+
+## Match Number as Primary Key
+
+**Important:** The scanner uses **match number as the primary key** when merging QR codes.
+
+### How It Works
+
+When you scan multiple QR codes:
+- Matches are merged based on match number
+- **Later scans overwrite earlier scans** for the same match number
+- This allows you to update specific matches without rescanning everything
+
+### Example
+
+**Scenario:**
+1. First scan: Matches 1, 3, 4, 7
+2. Second scan: Matches 1, 5, 6, 7, 8
+
+**Result:** Matches 1 (from second), 3, 4 (from first), 5, 6, 7, 8 (from second)
+
+- Match 1: Updated to second scan's version
+- Match 3, 4: Kept from first scan
+- Match 5, 6, 8: Added from second scan
+- Match 7: Updated to second scan's version
+
+### Use Cases
+
+**Update Strategy for Specific Match:**
+```
+1. Already scanned matches 1-10
+2. Need to change strategy for match 5
+3. Generate QR code with only match 5
+4. Scan it - match 5 is overwritten
+5. Save - now have updated match 5 + unchanged 1-4, 6-10
+```
+
+**Incremental Addition:**
+```
+1. Morning: Scan matches 1-5
+2. Afternoon: Scan matches 6-10
+3. Save - have all 10 matches
+```
+
+**Fix Errors:**
+```
+1. Scanned match 3 with wrong configuration
+2. Fix in web app, generate new QR for match 3
+3. Scan updated QR
+4. Match 3 is replaced, others unchanged
+```
 
 ## Hardware Requirements
 
@@ -276,7 +327,7 @@ for (LLResultTypes.BarcodeResult barcode : barcodes) {
 **Solution**:
 - Split matches into multiple QR codes
 - Scan each separately (scanner merges them)
-- Reduce number of matches per QR code
+- Reduce the number of matches per QR code
 - Simplify action configurations
 
 ## Best Practices

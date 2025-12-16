@@ -140,6 +140,11 @@ During Match:
 ?              LIMELIGHT QR SCANNER OPMODE                    ?
 ?                                                             ?
 ?  Scan QR code ? Parse JSON ? Validate ? Merge ? Save       ?
+?                                                             ?
+?  MERGE LOGIC (Match Number = Primary Key):                 ?
+?  - Scans processed in order                                ?
+?  - Later scans OVERWRITE earlier for same match number     ?
+?  - Allows incremental updates and corrections              ?
 ???????????????????????????????????????????????????????????????
                              ?
                              ?
@@ -186,21 +191,59 @@ During Match:
 
 ---
 
-### Use Case 3: Last-Minute Changes
+### Use Case 3: Last-Minute Changes ? UPDATED
 **Scenario**: Need to modify strategy between matches
 
 ```
-1. Update match configuration in web app
-2. Generate new QR code
-3. Re-scan with Limelight scanner
-   - Existing file is overwritten
-4. Run autonomous OpMode (same as before)
+1. Update match configuration in web app (e.g., Match #5)
+2. Generate QR code with ONLY Match #5
+3. Scan with Limelight scanner
+   - Match #5 overwrites previous version
+   - Other matches remain unchanged
+4. Save (press B)
+5. Run autonomous OpMode (same as before)
 ```
-**Time**: ~1 minute
+**Time**: ~1 minute  
+**Benefit**: No need to rescan all matches!
 
 ---
 
-### Use Case 4: Multiple Teams Sharing Code
+### Use Case 4: Incremental Addition ? NEW
+**Scenario**: Add matches throughout the day
+
+```
+Morning:
+1. Configure Matches #1-5
+2. Generate QR code
+3. Scan and save
+
+Afternoon:
+4. Configure Matches #6-10
+5. Generate QR code
+6. Scan (adds to existing)
+7. Save
+8. Now have all 10 matches
+```
+**Benefit**: Build match list incrementally
+
+---
+
+### Use Case 5: Error Correction ? NEW
+**Scenario**: Fix wrong configuration for specific match
+
+```
+1. Realize Match #3 has wrong start position
+2. Fix Match #3 in web app
+3. Generate QR code with ONLY Match #3
+4. Scan it
+5. Match #3 updated, Matches #1-2, #4+ unchanged
+6. Save and continue
+```
+**Benefit**: Surgical updates without affecting other matches
+
+---
+
+### Use Case 6: Multiple Teams Sharing Code
 **Scenario**: Share OpMode structure but different configs
 
 ```

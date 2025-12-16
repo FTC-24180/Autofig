@@ -330,6 +330,15 @@ public class LimelightQRScannerOpMode extends LinearOpMode {
             // Merge all scanned configs into one
             MatchDataConfig unified = mergeConfigs(scannedConfigs);
             
+            // Get list of match numbers for display
+            java.util.List<Integer> matchNumbers = new java.util.ArrayList<>();
+            for (org.firstinspires.ftc.teamcode.auto.config.MatchWrapper wrapper : unified.matches) {
+                if (wrapper.match != null) {
+                    matchNumbers.add(wrapper.match.number);
+                }
+            }
+            java.util.Collections.sort(matchNumbers);
+            
             // Convert to JSON
             String json = configToJson(unified);
             
@@ -348,9 +357,11 @@ public class LimelightQRScannerOpMode extends LinearOpMode {
             telemetry.clear();
             telemetry.addData("SUCCESS!", "");
             telemetry.addLine();
-            telemetry.addData("Saved", getTotalMatchCount() + " match(es)");
+            telemetry.addData("Saved", unified.matches.size() + " match(es)");
+            telemetry.addData("Match Numbers", matchNumbers.toString());
             telemetry.addData("File", OUTPUT_FILE);
             telemetry.addLine();
+            telemetry.addData("Note", "Duplicate match numbers overwritten");
             telemetry.addData("", "Ready for autonomous!");
             telemetry.addLine();
             telemetry.addData("Press STOP", "to exit");
@@ -382,22 +393,38 @@ public class LimelightQRScannerOpMode extends LinearOpMode {
     
     /**
      * Merge multiple configs into a single unified config
+     * Match number is the primary key - newer scans overwrite existing matches with same number
+     * Matches are ordered by match number
      */
     private MatchDataConfig mergeConfigs(List<MatchDataConfig> configs) {
         MatchDataConfig unified = new MatchDataConfig();
         unified.version = SCHEMA_VERSION;
         unified.matches = new ArrayList<>();
         
-        // Add all matches from all configs
+        // Use TreeMap to automatically sort by match number
+        // Key: match number, Value: match wrapper
+        java.util.Map<Integer, org.firstinspires.ftc.teamcode.auto.config.MatchWrapper> matchMap = 
+            new java.util.TreeMap<>();
+        
+        // Process configs in order - later configs overwrite earlier ones
         for (MatchDataConfig config : configs) {
             if (config.matches != null) {
-                unified.matches.addAll(config.matches);
+                for (org.firstinspires.ftc.teamcode.auto.config.MatchWrapper wrapper : config.matches) {
+                    if (wrapper.match != null) {
+                        int matchNumber = wrapper.match.number;
+                        // This will overwrite if match number already exists
+                        matchMap.put(matchNumber, wrapper);
+                    }
+                }
             }
         }
         
+        // Convert map back to list (sorted by match number)
+        unified.matches.addAll(matchMap.values());
+        
         return unified;
     }
-    
+
     /**
      * Convert config to formatted JSON string
      */

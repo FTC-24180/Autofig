@@ -30,6 +30,8 @@ import java.util.List;
  * QR Code Format:
  * QR codes should contain complete match data JSON in the AutoConfig schema format.
  * Each QR code can contain one or more matches.
+ * 
+ * State-based design - no blocking sleeps, fully responsive to input
  */
 @TeleOp(name = "Limelight QR Scanner", group = "Config")
 public class LimelightQRScannerOpMode extends LinearOpMode {
@@ -38,14 +40,26 @@ public class LimelightQRScannerOpMode extends LinearOpMode {
     private Limelight3A limelight;
     
     // Configuration
-    private static final String LIMELIGHT_NAME = "limelight";  // Update to match your hardware config
+    private static final String LIMELIGHT_NAME = "limelight";
     private static final String OUTPUT_FILE = "/sdcard/FIRST/match-data.json";
     private static final String SCHEMA_VERSION = "1.0.0";
     
-    // State
+    // State management
+    private enum OpModeState {
+        READY,              // Ready for input
+        SCANNING,           // Currently scanning QR code
+        SHOWING_MESSAGE,    // Displaying message (error or success)
+        PREVIEWING,         // Showing QR code preview
+        SAVED               // Successfully saved, waiting for stop
+    }
+    
+    private OpModeState currentState = OpModeState.READY;
+    private String statusMessage = "";
+    private String statusDetail = "";
+    
+    // Data storage
     private List<MatchDataConfig> scannedConfigs = new ArrayList<>();
     private AutoConfigParser parser = new AutoConfigParser();
-    private boolean isScanning = false;
     
     @Override
     public void runOpMode() throws InterruptedException {
@@ -53,21 +67,56 @@ public class LimelightQRScannerOpMode extends LinearOpMode {
         telemetry.update();
         
         // Initialize Limelight
-        try {
-            limelight = hardwareMap.get(Limelight3A.class, LIMELIGHT_NAME);
-            limelight.pipelineSwitch(0);  // Use pipeline 0 - configure for barcode detection
-            limelight.start();
-            telemetry.addData("Limelight", "Initialized");
-        } catch (Exception e) {
-            telemetry.addData("Error", "Failed to initialize Limelight");
-            telemetry.addData("Message", e.getMessage());
-            telemetry.addData("Check", "Hardware config name: " + LIMELIGHT_NAME);
-            telemetry.update();
-            
+        if (!initializeLimelight()) {
             waitForStart();
             return;
         }
         
+        displayInitialInstructions();
+        waitForStart();
+        
+        if (!opModeIsActive()) return;
+        
+        // Main loop - non-blocking, state-based
+        while (opModeIsActive()) {
+            handleState();
+            updateTelemetry();
+            idle(); // Yield to allow other processes
+        }
+        
+        // Cleanup
+        if (limelight != null) {
+            limelight.stop();
+        }
+    }
+    
+    /**
+     * Initialize Limelight hardware
+     * @return true if successful, false on error
+     */
+    private boolean initializeLimelight() {
+        try {
+            limelight = hardwareMap.get(Limelight3A.class, LIMELIGHT_NAME);
+            limelight.pipelineSwitch(0);
+            limelight.start();
+            telemetry.addData("Limelight", "Initialized");
+            telemetry.update();
+            return true;
+        } catch (Exception e) {
+            telemetry.clear();
+            telemetry.addData("Error", "Failed to initialize Limelight");
+            telemetry.addData("Message", e.getMessage());
+            telemetry.addData("Check", "Hardware config name: " + LIMELIGHT_NAME);
+            telemetry.update();
+            return false;
+        }
+    }
+    
+    /**
+     * Display initial instructions before start
+     */
+    private void displayInitialInstructions() {
+        telemetry.clear();
         telemetry.addData("Status", "Ready to scan");
         telemetry.addData("Controls", "");
         telemetry.addData("> A Button", "Scan QR code");
@@ -78,225 +127,185 @@ public class LimelightQRScannerOpMode extends LinearOpMode {
         telemetry.addData("Scanned Matches", scannedConfigs.size());
         telemetry.addData("Output", OUTPUT_FILE);
         telemetry.update();
-        
-        waitForStart();
-        
-        if (!opModeIsActive()) return;
-        
-        // Main scanning loop
-        while (opModeIsActive()) {
-            // Update telemetry with current state
-            updateTelemetry();
-            
-            // Handle button inputs
-            handleControls();
-            
-            sleep(50);  // Small delay to prevent button spam
-        }
-        
-        // Cleanup
-        if (limelight != null) {
-            limelight.stop();
+    }
+    
+    /**
+     * Main state handler - dispatches to appropriate handler based on state
+     */
+    private void handleState() {
+        switch (currentState) {
+            case READY:
+                handleReadyState();
+                break;
+                
+            case SCANNING:
+                handleScanningState();
+                break;
+                
+            case SHOWING_MESSAGE:
+                handleShowingMessageState();
+                break;
+                
+            case PREVIEWING:
+                handlePreviewingState();
+                break;
+                
+            case SAVED:
+                handleSavedState();
+                break;
         }
     }
     
     /**
-     * Update telemetry display
+     * Handle READY state - waiting for user input
      */
-    private void updateTelemetry() {
-        telemetry.clear();
-        telemetry.addData("Status", isScanning ? "SCANNING..." : "Ready");
-        telemetry.addLine();
-        
-        // Show Limelight status
-        LLResult result = limelight.getLatestResult();
-        if (result != null && result.isValid()) {
-            telemetry.addData("Limelight", "Target detected");
-            
-            // Check for barcode/QR results
-            List<LLResultTypes.BarcodeResult> barcodes = result.getBarcodeResults();
-            if (barcodes != null && !barcodes.isEmpty()) {
-                telemetry.addData("QR Codes", barcodes.size() + " detected");
-                telemetry.addData("", "Press A to scan");
-            } else {
-                telemetry.addData("QR Codes", "None detected");
-            }
-        } else {
-            telemetry.addData("Limelight", "No target");
-        }
-        
-        telemetry.addLine();
-        telemetry.addData("Scanned Matches", getTotalMatchCount());
-        telemetry.addData("Scans", scannedConfigs.size());
-        
-        telemetry.addLine();
-        telemetry.addData("Controls", "");
-        telemetry.addData("> A", "Scan QR code");
-        telemetry.addData("> B", "Save & finish");
-        telemetry.addData("> X", "Clear all");
-        telemetry.addData("> Y", "Preview QR");
-        
-        telemetry.update();
-    }
-    
-    /**
-     * Handle gamepad controls
-     */
-    private void handleControls() {
-        // A button: Scan current QR code
-        if (gamepad1.a && !isScanning) {
-            scanQRCode();
-        }
-        
-        // B button: Save and finish
-        if (gamepad1.b && !isScanning) {
-            saveAndFinish();
-        }
-        
-        // X button: Clear all scans
-        if (gamepad1.x && !isScanning) {
+    private void handleReadyState() {
+        // Use SDK's {button}WasPressed() for edge detection - automatically handles press/release
+        if (gamepad1.aWasPressed()) {
+            startScanQRCode();
+        } else if (gamepad1.bWasPressed()) {
+            startSaveAndFinish();
+        } else if (gamepad1.xWasPressed()) {
             clearScans();
-        }
-        
-        // Y button: Preview current QR
-        if (gamepad1.y && !isScanning) {
-            previewQRCode();
+        } else if (gamepad1.yWasPressed()) {
+            startPreviewQRCode();
         }
     }
     
     /**
-     * Scan QR code from Limelight
+     * Handle SCANNING state - perform scan operation
      */
-    private void scanQRCode() {
-        isScanning = true;
-        telemetry.addData("Action", "Scanning QR code...");
-        telemetry.update();
-        
+    private void handleScanningState() {
         try {
             LLResult result = limelight.getLatestResult();
             
             if (result == null || !result.isValid()) {
-                telemetry.addData("Error", "No Limelight result");
-                telemetry.update();
-                sleep(1500);
-                isScanning = false;
+                showMessage("Error: No Limelight result", 
+                           "Check camera connection");
                 return;
             }
             
-            // Get barcode results
             List<LLResultTypes.BarcodeResult> barcodes = result.getBarcodeResults();
             
             if (barcodes == null || barcodes.isEmpty()) {
-                telemetry.addData("Error", "No QR codes detected");
-                telemetry.addData("", "Point camera at QR code");
-                telemetry.update();
-                sleep(1500);
-                isScanning = false;
+                showMessage("Error: No QR codes detected", 
+                           "Point camera at QR code");
                 return;
             }
             
-            // Process first barcode (or could process all)
             LLResultTypes.BarcodeResult barcode = barcodes.get(0);
             String qrData = barcode.getData();
             
             if (qrData == null || qrData.isEmpty()) {
-                telemetry.addData("Error", "QR code is empty");
-                telemetry.update();
-                sleep(1500);
-                isScanning = false;
+                showMessage("Error: QR code is empty", "");
                 return;
             }
-            
-            telemetry.addData("QR Data Length", qrData.length() + " chars");
-            telemetry.update();
             
             // Parse JSON from QR code
             try {
                 MatchDataConfig config = parser.parseJson(qrData);
                 
                 if (config == null || config.matches == null || config.matches.isEmpty()) {
-                    telemetry.addData("Error", "No matches in QR code");
-                    telemetry.update();
-                    sleep(1500);
-                    isScanning = false;
+                    showMessage("Error: No matches in QR code", 
+                               "Check QR code format");
                     return;
                 }
                 
-                // Add to scanned configs
+                // Success - add to scanned configs
                 scannedConfigs.add(config);
-                
-                telemetry.addData("Success!", "Scanned " + config.matches.size() + " match(es)");
-                telemetry.addData("Total Matches", getTotalMatchCount());
-                telemetry.update();
-                sleep(1500);
+                showMessage("Success!", 
+                           "Scanned " + config.matches.size() + " match(es). " +
+                           "Total: " + getTotalMatchCount());
                 
             } catch (Exception e) {
-                telemetry.addData("Parse Error", e.getMessage());
-                telemetry.addData("QR Preview", qrData.substring(0, Math.min(100, qrData.length())));
-                telemetry.update();
-                sleep(2000);
+                showMessage("Parse Error: " + e.getMessage(), 
+                           "QR Preview: " + qrData.substring(0, Math.min(100, qrData.length())));
             }
             
         } catch (Exception e) {
-            telemetry.addData("Scan Error", e.getMessage());
-            telemetry.update();
-            sleep(2000);
-        } finally {
-            isScanning = false;
+            showMessage("Scan Error: " + e.getMessage(), "");
         }
     }
     
     /**
-     * Preview QR code data without saving
+     * Handle SHOWING_MESSAGE state - display message until user presses any button
      */
-    private void previewQRCode() {
-        telemetry.clear();
-        telemetry.addData("Action", "Previewing QR code...");
-        telemetry.update();
-        sleep(500);
-        
+    private void handleShowingMessageState() {
+        // Any button press returns to ready state
+        if (gamepad1.aWasPressed() || 
+            gamepad1.bWasPressed() || 
+            gamepad1.xWasPressed() || 
+            gamepad1.yWasPressed()) {
+            currentState = OpModeState.READY;
+            statusMessage = "";
+            statusDetail = "";
+        }
+    }
+    
+    /**
+     * Handle PREVIEWING state - show QR preview until user presses button
+     */
+    private void handlePreviewingState() {
+        // Any button press returns to ready state
+        if (gamepad1.aWasPressed() || 
+            gamepad1.bWasPressed() || 
+            gamepad1.xWasPressed() || 
+            gamepad1.yWasPressed()) {
+            currentState = OpModeState.READY;
+            statusMessage = "";
+            statusDetail = "";
+        }
+    }
+    
+    /**
+     * Handle SAVED state - file saved, waiting for stop
+     */
+    private void handleSavedState() {
+        // Just wait for user to stop the OpMode
+        // All telemetry is already set
+    }
+    
+    /**
+     * Start scanning QR code
+     */
+    private void startScanQRCode() {
+        currentState = OpModeState.SCANNING;
+        statusMessage = "Scanning QR code...";
+        statusDetail = "";
+    }
+    
+    /**
+     * Start preview of QR code
+     */
+    private void startPreviewQRCode() {
         try {
             LLResult result = limelight.getLatestResult();
             
             if (result == null || !result.isValid()) {
-                telemetry.addData("Error", "No Limelight result");
-                telemetry.update();
-                sleep(1500);
+                showMessage("Error: No Limelight result", "");
                 return;
             }
             
             List<LLResultTypes.BarcodeResult> barcodes = result.getBarcodeResults();
             
             if (barcodes == null || barcodes.isEmpty()) {
-                telemetry.addData("Error", "No QR codes detected");
-                telemetry.update();
-                sleep(1500);
+                showMessage("Error: No QR codes detected", "");
                 return;
             }
             
             LLResultTypes.BarcodeResult barcode = barcodes.get(0);
             String qrData = barcode.getData();
             
-            telemetry.clear();
-            telemetry.addData("QR Code Preview", "");
-            telemetry.addData("Type", barcode.getType());
-            telemetry.addData("Length", qrData.length() + " characters");
-            telemetry.addLine();
-            
-            // Show first 200 characters
-            int previewLength = Math.min(200, qrData.length());
-            telemetry.addData("Data", qrData.substring(0, previewLength));
-            if (qrData.length() > 200) {
-                telemetry.addData("", "... (" + (qrData.length() - 200) + " more chars)");
-            }
-            
-            telemetry.update();
-            sleep(5000);  // Show for 5 seconds
+            // Set preview state
+            currentState = OpModeState.PREVIEWING;
+            statusMessage = "QR Code Preview (Press any button to exit)";
+            statusDetail = "Type: " + barcode.getType() + "\n" +
+                          "Length: " + qrData.length() + " characters\n\n" +
+                          "Data: " + qrData.substring(0, Math.min(200, qrData.length())) +
+                          (qrData.length() > 200 ? "\n... (" + (qrData.length() - 200) + " more chars)" : "");
             
         } catch (Exception e) {
-            telemetry.addData("Preview Error", e.getMessage());
-            telemetry.update();
-            sleep(2000);
+            showMessage("Preview Error: " + e.getMessage(), "");
         }
     }
     
@@ -305,33 +314,25 @@ public class LimelightQRScannerOpMode extends LinearOpMode {
      */
     private void clearScans() {
         scannedConfigs.clear();
-        telemetry.addData("Action", "Cleared all scans");
-        telemetry.update();
-        sleep(1000);
+        showMessage("Cleared all scans", "Ready to scan again");
     }
     
     /**
-     * Save unified JSON and finish
+     * Start save and finish process
      */
-    private void saveAndFinish() {
+    private void startSaveAndFinish() {
         if (scannedConfigs.isEmpty()) {
-            telemetry.addData("Error", "No matches to save");
-            telemetry.addData("", "Scan at least one QR code first");
-            telemetry.update();
-            sleep(2000);
+            showMessage("Error: No matches to save", 
+                       "Scan at least one QR code first");
             return;
         }
         
-        telemetry.clear();
-        telemetry.addData("Action", "Saving unified match data...");
-        telemetry.update();
-        
         try {
-            // Merge all scanned configs into one
+            // Merge all scanned configs
             MatchDataConfig unified = mergeConfigs(scannedConfigs);
             
-            // Get list of match numbers for display
-            java.util.List<Integer> matchNumbers = new java.util.ArrayList<>();
+            // Get list of match numbers
+            List<Integer> matchNumbers = new ArrayList<>();
             for (org.firstinspires.ftc.teamcode.auto.config.MatchWrapper wrapper : unified.matches) {
                 if (wrapper.match != null) {
                     matchNumbers.add(wrapper.match.number);
@@ -354,40 +355,126 @@ public class LimelightQRScannerOpMode extends LinearOpMode {
                 writer.write(json);
             }
             
-            telemetry.clear();
-            telemetry.addData("SUCCESS!", "");
-            telemetry.addLine();
-            telemetry.addData("Saved", unified.matches.size() + " match(es)");
-            telemetry.addData("Match Numbers", matchNumbers.toString());
-            telemetry.addData("File", OUTPUT_FILE);
-            telemetry.addLine();
-            telemetry.addData("Note", "Duplicate match numbers overwritten");
-            telemetry.addData("", "Ready for autonomous!");
-            telemetry.addLine();
-            telemetry.addData("Press STOP", "to exit");
-            telemetry.update();
-            
-            // Wait for stop
-            while (opModeIsActive()) {
-                sleep(100);
-            }
+            // Success - enter saved state
+            currentState = OpModeState.SAVED;
+            statusMessage = "SUCCESS!";
+            statusDetail = "Saved: " + unified.matches.size() + " match(es)\n" +
+                          "Match Numbers: " + matchNumbers.toString() + "\n" +
+                          "File: " + OUTPUT_FILE + "\n\n" +
+                          "Note: Duplicate match numbers overwritten\n" +
+                          "Ready for autonomous!\n\n" +
+                          "Press STOP to exit";
             
         } catch (IOException e) {
-            telemetry.clear();
-            telemetry.addData("SAVE ERROR", "");
-            telemetry.addData("Message", e.getMessage());
-            telemetry.addData("Path", OUTPUT_FILE);
-            telemetry.addLine();
-            telemetry.addData("Press B", "to retry");
-            telemetry.addData("Press X", "to cancel");
-            telemetry.update();
-            
-            sleep(3000);
+            showMessage("SAVE ERROR: " + e.getMessage(), 
+                       "Path: " + OUTPUT_FILE + "\n\n" +
+                       "Press B to retry");
         } catch (Exception e) {
-            telemetry.clear();
-            telemetry.addData("ERROR", e.getMessage());
-            telemetry.update();
-            sleep(3000);
+            showMessage("ERROR: " + e.getMessage(), "");
+        }
+    }
+    
+    /**
+     * Show a message and transition to SHOWING_MESSAGE state
+     */
+    private void showMessage(String message, String detail) {
+        currentState = OpModeState.SHOWING_MESSAGE;
+        statusMessage = message;
+        statusDetail = detail;
+    }
+    
+    /**
+     * Update telemetry based on current state
+     */
+    private void updateTelemetry() {
+        telemetry.clear();
+        
+        // Display based on current state
+        switch (currentState) {
+            case READY:
+                displayReadyTelemetry();
+                break;
+                
+            case SCANNING:
+                displayScanningTelemetry();
+                break;
+                
+            case SHOWING_MESSAGE:
+            case PREVIEWING:
+            case SAVED:
+                displayMessageTelemetry();
+                break;
+        }
+        
+        telemetry.update();
+    }
+    
+    /**
+     * Display telemetry for READY state
+     */
+    private void displayReadyTelemetry() {
+        telemetry.addData("Status", "Ready");
+        telemetry.addLine();
+        
+        // Show Limelight status
+        LLResult result = limelight.getLatestResult();
+        if (result != null && result.isValid()) {
+            telemetry.addData("Limelight", "Target detected");
+            
+            List<LLResultTypes.BarcodeResult> barcodes = result.getBarcodeResults();
+            if (barcodes != null && !barcodes.isEmpty()) {
+                telemetry.addData("QR Codes", barcodes.size() + " detected");
+                telemetry.addData("", "Press A to scan");
+            } else {
+                telemetry.addData("QR Codes", "None detected");
+            }
+        } else {
+            telemetry.addData("Limelight", "No target");
+        }
+        
+        telemetry.addLine();
+        telemetry.addData("Scanned Matches", getTotalMatchCount());
+        telemetry.addData("Scans", scannedConfigs.size());
+        
+        telemetry.addLine();
+        telemetry.addData("Controls", "");
+        telemetry.addData("> A", "Scan QR code");
+        telemetry.addData("> B", "Save & finish");
+        telemetry.addData("> X", "Clear all");
+        telemetry.addData("> Y", "Preview QR");
+    }
+    
+    /**
+     * Display telemetry for SCANNING state
+     */
+    private void displayScanningTelemetry() {
+        telemetry.addData("Status", "SCANNING...");
+        telemetry.addData("", "Please wait");
+    }
+    
+    /**
+     * Display telemetry for message/preview/saved states
+     */
+    private void displayMessageTelemetry() {
+        telemetry.addData("Status", statusMessage);
+        
+        if (!statusDetail.isEmpty()) {
+            telemetry.addLine();
+            // Split detail into lines for better display
+            String[] lines = statusDetail.split("\n");
+            for (String line : lines) {
+                if (line.isEmpty()) {
+                    telemetry.addLine();
+                } else {
+                    telemetry.addData("", line);
+                }
+            }
+        }
+        
+        if (currentState == OpModeState.SHOWING_MESSAGE || 
+            currentState == OpModeState.PREVIEWING) {
+            telemetry.addLine();
+            telemetry.addData("", "Press any button to continue");
         }
     }
     
@@ -402,7 +489,6 @@ public class LimelightQRScannerOpMode extends LinearOpMode {
         unified.matches = new ArrayList<>();
         
         // Use TreeMap to automatically sort by match number
-        // Key: match number, Value: match wrapper
         java.util.Map<Integer, org.firstinspires.ftc.teamcode.auto.config.MatchWrapper> matchMap = 
             new java.util.TreeMap<>();
         
@@ -412,7 +498,6 @@ public class LimelightQRScannerOpMode extends LinearOpMode {
                 for (org.firstinspires.ftc.teamcode.auto.config.MatchWrapper wrapper : config.matches) {
                     if (wrapper.match != null) {
                         int matchNumber = wrapper.match.number;
-                        // This will overwrite if match number already exists
                         matchMap.put(matchNumber, wrapper);
                     }
                 }
@@ -424,12 +509,11 @@ public class LimelightQRScannerOpMode extends LinearOpMode {
         
         return unified;
     }
-
+    
     /**
      * Convert config to formatted JSON string
      */
     private String configToJson(MatchDataConfig config) {
-        // Using Gson for pretty printing
         com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
             .setPrettyPrinting()
             .create();

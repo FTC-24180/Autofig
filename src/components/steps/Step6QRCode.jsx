@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { WizardStep } from '../WizardStep';
 import { QRCodeSVG } from 'qrcode.react';
 import { AllianceIcon } from '../AllianceIcon';
@@ -17,6 +17,16 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
   
   const matchCount = config.matches?.length || 1;
   
+  // Update selectedMatchIndex when currentMatchId changes
+  useEffect(() => {
+    if (matches && currentMatchId) {
+      const index = matches.findIndex(m => m.id === currentMatchId);
+      if (index >= 0 && index !== selectedMatchIndex) {
+        setSelectedMatchIndex(index);
+      }
+    }
+  }, [currentMatchId, matches]);
+  
   // Get match data from config structure
   const getMatchFromConfig = (index) => {
     const matchWrapper = config.matches?.[index];
@@ -32,8 +42,13 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
     };
   };
 
-  const currentMatch = getMatchFromConfig(selectedMatchIndex);
-  const terseInfo = currentMatch ? getTerseInfo(currentMatch) : { terse: '', size: 0, fitsInQRv4: true };
+  // Memoize current match and derived values to ensure reactivity
+  const currentMatch = useMemo(() => getMatchFromConfig(selectedMatchIndex), [selectedMatchIndex, config.matches]);
+  const terseInfo = useMemo(() => 
+    currentMatch ? getTerseInfo(currentMatch) : { terse: '', size: 0, fitsInQRv4: true },
+    [currentMatch]
+  );
+  const isCustomPosition = currentMatch?.startPosition?.type === 'S0';
 
   const handleMatchIndexChange = (newIndex) => {
     setSelectedMatchIndex(newIndex);
@@ -126,7 +141,7 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
                 <span>Match #{currentMatch.matchNumber}</span>
                 {currentMatch.partnerTeam && (
                   <>
-                    <span className="text-indigo-600 dark:text-indigo-400">•</span>
+                    <span className="text-indigo-600 dark:text-indigo-400">{'\u2022'}</span>
                     <span>Team {currentMatch.partnerTeam}</span>
                   </>
                 )}
@@ -243,13 +258,17 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
                 </div>
               )}
               <div className="flex justify-between">
+                <span className="font-medium">Start Position:</span>
+                <span className="font-mono">{currentMatch.startPosition.type}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="font-medium">Actions:</span>
                 <span>{currentMatch.actions.length}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">QR Size:</span>
                 <span className={terseInfo.fitsInQRv4 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
-                  {terseInfo.size} bytes {terseInfo.fitsInQRv4 ? '? Fits QR v4' : '? Too large'}
+                  {terseInfo.size} bytes {terseInfo.fitsInQRv4 ? '\u2713 Fits QR v4' : '\u2717 Too large'}
                 </span>
               </div>
             </div>
@@ -301,10 +320,50 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
                 {terseInfo.terse}
               </pre>
             </div>
+            
+            {/* Format Specification */}
             <div className="mt-3 space-y-2 text-xs text-gray-600 dark:text-gray-400">
-              <div><strong>Format:</strong> {'{n}[R|B]S{startPos}[W{sec}|A{actionId}]*'}</div>
-              <div><strong>Size:</strong> {terseInfo.size} bytes</div>
-              <div><strong>QR v4:</strong> {terseInfo.fitsInQRv4 ? '? Compatible' : '? Too large (max 100 bytes)'}</div>
+              <div>
+                <strong>Format:</strong>{' '}
+                <span className="font-mono">
+                  {'{n}[R|B]'}
+                  {isCustomPosition ? 'S0{base64}' : 'S{n}'}
+                  {'[W{sec}|A{id}]*'}
+                </span>
+              </div>
+              
+              {isCustomPosition && (
+                <div className="p-2 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded">
+                  <strong className="text-amber-900 dark:text-amber-200">Custom Position (S0):</strong>
+                  <div className="mt-1 space-y-0.5 text-amber-900 dark:text-amber-200">
+                    <div>{'\u2022'} 6-character base64 encoded pose</div>
+                    <div>{'\u2022'} Contains X, Y, theta coordinates</div>
+                    <div>{'\u2022'} 12 bits per value (~1mm, ~0.1{'\u00B0'} resolution)</div>
+                    <div>{'\u2022'} Total: 8 bytes (S0 + 6 base64 chars)</div>
+                  </div>
+                </div>
+              )}
+              
+              <div><strong>Match:</strong> {currentMatch.matchNumber} (no zero padding)</div>
+              <div><strong>Alliance:</strong> {currentMatch.alliance === 'red' ? 'R (Red)' : 'B (Blue)'}</div>
+              <div>
+                <strong>Start Position:</strong> {currentMatch.startPosition.type}
+                {isCustomPosition && currentMatch.startPosition.x !== undefined && (
+                  <span className="ml-1">
+                    ({currentMatch.startPosition.x?.toFixed(2)}m, {currentMatch.startPosition.y?.toFixed(2)}m, {currentMatch.startPosition.theta?.toFixed(1)}{'\u00B0'})
+                  </span>
+                )}
+              </div>
+              <div><strong>Actions:</strong> {currentMatch.actions.length > 0 ? `${currentMatch.actions.length} actions` : 'None'}</div>
+              <div><strong>Total Size:</strong> {terseInfo.size} bytes</div>
+              <div>
+                <strong>QR Compatibility:</strong>{' '}
+                {terseInfo.fitsInQRv4 ? (
+                  <span className="text-green-600 dark:text-green-400">{'\u2713'} Fits QR v4 (max 100 bytes)</span>
+                ) : (
+                  <span className="text-red-600 dark:text-red-400">{'\u2717'} Exceeds QR v4 capacity</span>
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -73,6 +73,7 @@ export function MainWizardView({
             onStartPositionChange={(pos) => updateCurrentMatch({ startPosition: pos })}
             startPositions={startPositions}
             onUpdateField={updateStartPositionField}
+            isActive={currentStep === 1}
           />
           <Step5Actions
             actionList={actionList}

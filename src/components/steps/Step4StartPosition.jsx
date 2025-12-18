@@ -1,15 +1,22 @@
-import { WizardStep } from '../WizardStep';
-import { getPoseResolution, roundToResolution } from '../../utils/poseEncoder';
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { WizardStep } from '../WizardStep';
+import { StartPositionPickerPanel } from '../StartPositionPickerPanel';
+import { getPoseResolution, roundToResolution } from '../../utils/poseEncoder';
 
 export function Step4StartPosition({ 
   startPosition, 
   onStartPositionChange,
   startPositions,
-  onUpdateField
+  onUpdateField,
+  isActive = false
 }) {
   const [adjustmentMessage, setAdjustmentMessage] = useState('');
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const resolution = getPoseResolution();
+
+  const closePanel = () => setIsPanelOpen(false);
+  const openPanel = () => setIsPanelOpen(true);
 
   const getStartPositionLabel = () => {
     // Check configured positions
@@ -82,49 +89,60 @@ export function Step4StartPosition({
     }
   };
 
+  // Only render panel when active
+  const panelElement = isActive && isPanelOpen ? createPortal(
+    <StartPositionPickerPanel
+      startPositions={startPositions}
+      currentPosition={startPosition}
+      onSelectPosition={onStartPositionChange}
+      isOpen={isPanelOpen}
+      onClose={closePanel}
+    />,
+    document.body
+  ) : null;
+
   return (
     <WizardStep 
       title="Starting Position"
       subtitle="Choose your robot's starting position"
     >
+      {/* Render panel via portal */}
+      {panelElement}
+
       <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
-            Select Position
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            {startPositions.map(pos => (
-              <button
-                key={pos.key}
-                onClick={() => onStartPositionChange({ type: pos.key })}
-                className={`p-4 rounded-lg font-semibold transition-all ${
-                  startPosition.type === pos.key
-                    ? 'bg-indigo-600 text-white ring-4 ring-indigo-300 shadow-lg'
-                    : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-slate-700'
-                }`}
-              >
-                {pos.label}
-              </button>
-            ))}
-            <button
-              onClick={() => onStartPositionChange({ type: 'S0', x: 0, y: 0, theta: 0 })}
-              className={`p-4 rounded-lg font-semibold transition-all ${
-                startPosition.type === 'S0'
-                  ? 'bg-indigo-600 text-white ring-4 ring-indigo-300 shadow-lg'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              Custom
-            </button>
+        {/* Current Position Display with Change Button */}
+        <div className="bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-700 rounded-lg p-4">
+          <div className="flex items-start gap-3 mb-3">
+            <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <div className="flex-1">
+              <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-1">Current Position</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                {getStartPositionLabel()}
+              </p>
+            </div>
           </div>
+          
+          <button
+            onClick={openPanel}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-semibold transition min-h-[48px] touch-manipulation"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            Select Position
+          </button>
         </div>
 
+        {/* Custom Position Configuration */}
         {startPosition.type === 'S0' && (
           <>
             <div className="bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-700 rounded-lg p-4">
-              <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-3">Custom Position</h4>
+              <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-3">Custom Position Configuration</h4>
               
-              {/* Resolution info - showing whole mm */}
+              {/* Resolution info */}
               <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded text-xs text-blue-800 dark:text-blue-200">
                 <strong>Resolution:</strong> X/Y: ~1mm, theta: ~0.1{'\u00B0'}
               </div>
@@ -217,21 +235,6 @@ export function Step4StartPosition({
             </div>
           </>
         )}
-
-        <div className="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <div>
-              <h4 className="font-semibold text-indigo-900 dark:text-indigo-200 mb-1">Current Position</h4>
-              <p className="text-sm text-indigo-900 dark:text-indigo-200">
-                {getStartPositionLabel()}
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </WizardStep>
   );

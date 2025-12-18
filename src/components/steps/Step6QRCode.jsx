@@ -2,18 +2,10 @@ import { useState, useRef, useMemo } from 'react';
 import { WizardStep } from '../WizardStep';
 import { QRCodeSVG } from 'qrcode.react';
 import { AllianceIcon } from '../AllianceIcon';
-
-// QR code capacity limits (approximately)
-const QR_CAPACITY = {
-  L: 2953, // Low error correction
-  M: 2331, // Medium error correction (default)
-  Q: 1663, // Quartile error correction
-  H: 1273  // High error correction
-};
+import { encodeMatchToTerse, getTerseInfo } from '../../utils/terseEncoder';
 
 export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSelectMatch }) {
-  const [showJSON, setShowJSON] = useState(false);
-  const [viewMode, setViewMode] = useState('individual'); // 'individual' or 'combined'
+  const [showTerse, setShowTerse] = useState(false);
   const [selectedMatchIndex, setSelectedMatchIndex] = useState(() => {
     // Initialize with the index of the current match
     if (!matches || !currentMatchId) return 0;
@@ -23,20 +15,25 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   
-  const matchCount = config.matches?.length || 0;
+  const matchCount = config.matches?.length || 1;
   
-  // Check if all matches can fit in a single QR code
-  const combinedJSON = useMemo(() => JSON.stringify(config, null, 0), [config]);
-  const canCombineIntoSingleQR = combinedJSON.length <= QR_CAPACITY.M;
-  
-  // Get individual match config
-  const getMatchConfig = (index) => {
-    if (!config.matches || !config.matches[index]) return null;
-    return config.matches[index];
+  // Get match data from config structure
+  const getMatchFromConfig = (index) => {
+    const matchWrapper = config.matches?.[index];
+    if (!matchWrapper?.match) return null;
+    
+    const m = matchWrapper.match;
+    return {
+      matchNumber: m.number,
+      alliance: m.alliance?.color || 'red',
+      partnerTeam: m.alliance?.team_number?.toString() || '',
+      startPosition: m.alliance?.auto?.startPosition || { type: 'front' },
+      actions: m.alliance?.auto?.actions || []
+    };
   };
 
-  const currentMatchConfig = getMatchConfig(selectedMatchIndex);
-  const currentMatchJSON = currentMatchConfig ? JSON.stringify(currentMatchConfig, null, 2) : '{}';
+  const currentMatch = getMatchFromConfig(selectedMatchIndex);
+  const terseInfo = currentMatch ? getTerseInfo(currentMatch) : { terse: '', size: 0, fitsInQRv4: true };
 
   const handleMatchIndexChange = (newIndex) => {
     setSelectedMatchIndex(newIndex);
@@ -59,14 +56,12 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
   };
 
   const handleTouchStart = (e) => {
-    // Prevent the event from bubbling to parent (WizardContainer)
     e.stopPropagation();
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = (e) => {
-    // Prevent the event from bubbling to parent (WizardContainer)
     e.stopPropagation();
     
     const touchEndX = e.changedTouches[0].clientX;
@@ -77,20 +72,11 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
     // Only trigger swipe if horizontal movement is dominant
     if (Math.abs(diffX) > 50 && diffY < 100) {
       if (diffX > 0) {
-        // Swipe left - go to next match or switch to combined view
-        if (viewMode === 'individual' && selectedMatchIndex === matchCount - 1 && canCombineIntoSingleQR) {
-          setViewMode('combined');
-        } else if (viewMode === 'individual') {
-          handleNextMatch();
-        }
+        // Swipe left - next match
+        handleNextMatch();
       } else {
-        // Swipe right - go to previous match or switch to individual view
-        if (viewMode === 'combined') {
-          setViewMode('individual');
-          setSelectedMatchIndex(matchCount - 1);
-        } else {
-          handlePrevMatch();
-        }
+        // Swipe right - previous match
+        handlePrevMatch();
       }
     }
   };
@@ -98,7 +84,7 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
   return (
     <WizardStep 
       title="QR Codes"
-      subtitle={canCombineIntoSingleQR && matchCount > 1 ? "Scan individual matches or all at once" : "Scan the QR code for each match"}
+      subtitle="Scan with your robot's Limelight camera"
       className="pb-safe"
     >
       <div className="space-y-6 pb-6">
@@ -110,96 +96,21 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
             </svg>
             <div>
               <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-1">
-                {viewMode === 'combined' ? 'All Matches in One QR Code' : 'Individual Match QR Codes'}
+                Ultra-Compact Terse Format
               </h4>
               <p className="text-sm text-blue-900 dark:text-blue-200">
-                {viewMode === 'combined'
-                  ? `All ${matchCount} matches are combined in this single QR code (${combinedJSON.length} bytes).`
-                  : matchCount === 1 
-                    ? 'Scan the QR code below with your robot\'s camera.'
-                    : canCombineIntoSingleQR
-                      ? 'Use arrows/dots to navigate, or swipe to the combined view for all matches in one QR code.'
-                      : 'Use the arrows or dots to navigate between matches, then scan each QR code.'
+                {matchCount === 1 
+                  ? 'Scan the QR code below with your robot\'s Limelight camera.'
+                  : 'Use arrows/dots to navigate between matches, then scan each QR code.'
                 }
+                {' '}QR codes use the terse format for maximum compatibility with low-capacity readers.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Mode Toggle (only show if combined QR is possible and more than 1 match) */}
-        {canCombineIntoSingleQR && matchCount > 1 && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => setViewMode('individual')}
-              className={`flex-1 py-2 px-4 rounded-lg font-medium transition touch-manipulation min-h-[44px] ${
-                viewMode === 'individual'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              Individual
-            </button>
-            <button
-              onClick={() => setViewMode('combined')}
-              className={`flex-1 py-2 px-4 rounded-lg font-medium transition touch-manipulation min-h-[44px] ${
-                viewMode === 'combined'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              All Matches
-            </button>
-          </div>
-        )}
-
         {/* QR Code Display with Navigation */}
-        {viewMode === 'combined' ? (
-          // Combined view - all matches in one QR code
-          <div 
-            className="bg-white dark:bg-slate-900 p-6 rounded-lg border-2 border-indigo-200 dark:border-indigo-800"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            {/* Combined Header */}
-            <div className="mb-4 text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-950/50 text-indigo-800 dark:text-indigo-200 rounded-full text-sm font-semibold">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                <span>All {matchCount} Matches</span>
-              </div>
-            </div>
-
-            {/* QR Code */}
-            <div className="flex justify-center">
-              <QRCodeSVG 
-                value={combinedJSON} 
-                size={Math.min(300, window.innerWidth - 100)} 
-                level="M" 
-                includeMargin={true} 
-              />
-            </div>
-
-            {/* View indicator */}
-            {canCombineIntoSingleQR && matchCount > 1 && (
-              <div className="flex justify-center gap-2 mt-4">
-                {config.matches.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setViewMode('individual');
-                      handleMatchIndexChange(index);
-                    }}
-                    className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full hover:bg-gray-400 dark:hover:bg-gray-500 touch-manipulation"
-                    aria-label={`Go to match ${index + 1}`}
-                  />
-                ))}
-                <div className="w-8 h-2 bg-indigo-600 dark:bg-indigo-500 rounded-full" />
-              </div>
-            )}
-          </div>
-        ) : currentMatchConfig ? (
-          // Individual view - one match at a time
+        {currentMatch ? (
           <div 
             className="bg-white dark:bg-slate-900 p-6 rounded-lg border-2 border-gray-200 dark:border-slate-700"
             onTouchStart={handleTouchStart}
@@ -209,14 +120,14 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
             <div className="mb-4 text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-950/50 text-indigo-800 dark:text-indigo-200 rounded-full text-sm font-semibold">
                 <AllianceIcon 
-                  alliance={currentMatchConfig.match?.alliance?.color} 
-                  className={`w-4 h-4 ${currentMatchConfig.match?.alliance?.color === 'red' ? 'text-red-600' : 'text-blue-600'}`}
+                  alliance={currentMatch.alliance} 
+                  className={`w-4 h-4 ${currentMatch.alliance === 'red' ? 'text-red-600' : 'text-blue-600'}`}
                 />
-                <span>Match #{currentMatchConfig.match?.number}</span>
-                {currentMatchConfig.match?.alliance?.team_number > 0 && (
+                <span>Match #{currentMatch.matchNumber}</span>
+                {currentMatch.partnerTeam && (
                   <>
                     <span className="text-indigo-600 dark:text-indigo-400">•</span>
-                    <span>Team {currentMatchConfig.match?.alliance?.team_number}</span>
+                    <span>Team {currentMatch.partnerTeam}</span>
                   </>
                 )}
               </div>
@@ -261,19 +172,26 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
               </div>
             )}
 
-            {/* QR Code */}
-            <div className="flex justify-center">
+            {/* QR Code - using terse format */}
+            <div className="flex justify-center mb-4">
               <QRCodeSVG 
-                value={currentMatchJSON} 
+                value={terseInfo.terse} 
                 size={Math.min(300, window.innerWidth - 100)} 
-                level="M" 
+                level="L"  // Low error correction for maximum data capacity
                 includeMargin={true} 
               />
             </div>
 
+            {/* Terse Format Preview */}
+            <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3 mb-4">
+              <div className="text-xs font-mono text-gray-600 dark:text-gray-300 break-all text-center">
+                {terseInfo.terse}
+              </div>
+            </div>
+
             {/* Dot Indicators */}
             {matchCount > 1 && (
-              <div className="flex justify-center gap-2 mt-4">
+              <div className="flex justify-center gap-2">
                 {config.matches.map((item, index) => {
                   const matchData = item.match;
                   const alliance = matchData?.alliance?.color;
@@ -296,13 +214,6 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
                     />
                   );
                 })}
-                {canCombineIntoSingleQR && (
-                  <button
-                    onClick={() => setViewMode('combined')}
-                    className="w-2 h-2 bg-indigo-200 dark:bg-indigo-900/40 hover:bg-indigo-300 dark:hover:bg-indigo-800/50 rounded-full touch-manipulation"
-                    aria-label="View all matches combined"
-                  />
-                )}
               </div>
             )}
           </div>
@@ -313,53 +224,33 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
         )}
 
         {/* Match Summary */}
-        {viewMode === 'combined' ? (
-          <div className="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
-            <h4 className="font-semibold text-indigo-900 dark:text-indigo-200 mb-2">Combined Configuration</h4>
-            <div className="space-y-1 text-sm text-indigo-900 dark:text-indigo-200">
-              <div className="flex justify-between">
-                <span className="font-medium">Total Matches:</span>
-                <span>{matchCount}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Total Actions:</span>
-                <span>{config.matches?.reduce((sum, m) => sum + (m.match?.alliance?.auto?.actions?.length || 0), 0) || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Data Size:</span>
-                <span>{combinedJSON.length} bytes</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">QR Capacity:</span>
-                <span className="text-green-600 dark:text-green-400">? Fits in single QR</span>
-              </div>
-            </div>
-          </div>
-        ) : currentMatchConfig && (
+        {currentMatch && (
           <div className="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
             <h4 className="font-semibold text-indigo-900 dark:text-indigo-200 mb-2">Current Match</h4>
             <div className="space-y-1 text-sm text-indigo-900 dark:text-indigo-200">
               <div className="flex justify-between">
                 <span className="font-medium">Match:</span>
-                <span>#{currentMatchConfig.match?.number}</span>
+                <span>#{currentMatch.matchNumber}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Alliance:</span>
-                <span>{currentMatchConfig.match?.alliance?.color?.toUpperCase()}</span>
+                <span>{currentMatch.alliance.toUpperCase()}</span>
               </div>
-              {currentMatchConfig.match?.alliance?.team_number > 0 && (
+              {currentMatch.partnerTeam && (
                 <div className="flex justify-between">
                   <span className="font-medium">Partner:</span>
-                  <span>{currentMatchConfig.match?.alliance?.team_number}</span>
+                  <span>{currentMatch.partnerTeam}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="font-medium">Actions:</span>
-                <span>{currentMatchConfig.match?.alliance?.auto?.actions?.length || 0}</span>
+                <span>{currentMatch.actions.length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="font-medium">Size:</span>
-                <span>{new Blob([currentMatchJSON]).size} bytes</span>
+                <span className="font-medium">QR Size:</span>
+                <span className={terseInfo.fitsInQRv4 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                  {terseInfo.size} bytes {terseInfo.fitsInQRv4 ? '? Fits QR v4' : '? Too large'}
+                </span>
               </div>
             </div>
           </div>
@@ -374,45 +265,51 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Download All Matches JSON
+            Download JSON (Standard Format)
           </button>
 
           <button
-            onClick={() => setShowJSON(!showJSON)}
+            onClick={() => setShowTerse(!showTerse)}
             className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 dark:bg-slate-800 active:bg-gray-200 dark:active:bg-slate-700 text-gray-700 dark:text-gray-100 rounded-lg font-semibold transition min-h-[48px] touch-manipulation"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
             </svg>
-            {showJSON ? 'Hide' : 'Show'} JSON
+            {showTerse ? 'Hide' : 'Show'} Terse Format
           </button>
         </div>
 
-        {/* JSON Display */}
-        {showJSON && (
+        {/* Terse Format Display */}
+        {showTerse && currentMatch && (
           <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-semibold text-gray-800 dark:text-gray-100">
-                {viewMode === 'combined' ? 'All Matches JSON' : `Match #${currentMatchConfig?.match?.number} JSON`}
+                Match #{currentMatch.matchNumber} Terse Format
               </h4>
               <button
                 onClick={() => {
-                  const jsonToCopy = viewMode === 'combined' ? JSON.stringify(config, null, 2) : currentMatchJSON;
-                  navigator.clipboard.writeText(jsonToCopy);
-                  alert('JSON copied to clipboard!');
+                  navigator.clipboard.writeText(terseInfo.terse);
+                  alert('Terse format copied to clipboard!');
                 }}
                 className="text-xs px-2 py-1 bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-200 rounded hover:bg-indigo-200 dark:hover:bg-indigo-900/50 active:bg-indigo-300 touch-manipulation"
               >
                 Copy
               </button>
             </div>
-            <pre className="text-xs overflow-x-auto whitespace-pre-wrap break-words text-gray-800 dark:text-gray-200">
-              {viewMode === 'combined' ? JSON.stringify(config, null, 2) : currentMatchJSON}
-            </pre>
+            <div className="bg-gray-50 dark:bg-slate-950 rounded-lg p-3">
+              <pre className="text-sm font-mono overflow-x-auto whitespace-pre-wrap break-words text-gray-800 dark:text-gray-200">
+                {terseInfo.terse}
+              </pre>
+            </div>
+            <div className="mt-3 space-y-2 text-xs text-gray-600 dark:text-gray-400">
+              <div><strong>Format:</strong> {'{n}[R|B]S{startPos}[W{sec}|A{actionId}]*'}</div>
+              <div><strong>Size:</strong> {terseInfo.size} bytes</div>
+              <div><strong>QR v4:</strong> {terseInfo.fitsInQRv4 ? '? Compatible' : '? Too large (max 100 bytes)'}</div>
+            </div>
           </div>
         )}
 
-        {/* Success Message - with extra bottom padding */}
+        {/* Success Message */}
         <div className="bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
           <div className="flex items-start gap-3">
             <svg className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -421,13 +318,9 @@ export function Step6QRCode({ config, onDownload, matches, currentMatchId, onSel
             <div>
               <h4 className="font-semibold text-green-900 dark:text-green-200 mb-1">Ready to Scan</h4>
               <p className="text-sm text-green-900 dark:text-green-200">
-                {viewMode === 'combined'
-                  ? `All ${matchCount} matches are ready in one QR code. Scan to load all configurations at once.`
-                  : matchCount === 1 
-                    ? 'Your match is ready. Scan the QR code above with your robot\'s camera.'
-                    : canCombineIntoSingleQR
-                      ? `${matchCount} matches configured. Scan individually or switch to combined view for all matches in one QR code.`
-                      : `${matchCount} matches configured. Navigate between matches and scan each QR code, or download the complete JSON file.`
+                {matchCount === 1 
+                  ? 'Your match is ready in ultra-compact terse format. Scan the QR code with your robot\'s Limelight camera.'
+                  : `${matchCount} matches configured. Navigate between matches and scan each QR code with your robot's Limelight camera.`
                 }
               </p>
             </div>

@@ -1,6 +1,5 @@
 ﻿import { useState, useImperativeHandle, forwardRef } from 'react';
 import { VERSION } from '../../public/version.js';
-import { ActionsConfigContent } from './config/ActionsConfigContent';
 import { StartPositionsConfigContent } from './config/StartPositionsConfigContent';
 import { ClearDataModal } from './ClearDataModal';
 import { ConfirmClearDataModal } from './ConfirmClearDataModal';
@@ -73,7 +72,6 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
   const [showMatches, setShowMatches] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
-  const [showActionsConfig, setShowActionsConfig] = useState(false);
   const [showPositionsConfig, setShowPositionsConfig] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -95,20 +93,9 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
 
   // Expose methods to parent via ref
   useImperativeHandle(ref, () => ({
-    openToActionsConfig: () => {
-      setIsOpen(true);
-      setShowConfig(false);
-      setShowActionsConfig(true);
-      setShowPositionsConfig(false);
-      setShowTemplates(false);
-      setShowMatches(false);
-      setShowSettings(false);
-      setShowHelp(false);
-    },
     openToTemplates: () => {
       setIsOpen(true);
       setShowConfig(false);
-      setShowActionsConfig(false);
       setShowPositionsConfig(false);
       setShowTemplates(true);
       setShowMatches(false);
@@ -122,15 +109,13 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
     setShowMatches(false);
     setShowConfig(false);
     setShowTemplates(false);
-    setShowActionsConfig(false);
     setShowPositionsConfig(false);
     setShowSettings(false);
     setShowHelp(false);
   };
 
   const goBack = () => {
-    if (showActionsConfig || showPositionsConfig || showTemplates) {
-      setShowActionsConfig(false);
+    if (showPositionsConfig || showTemplates) {
       setShowPositionsConfig(false);
       setShowTemplates(false);
       setShowConfig(true);
@@ -287,7 +272,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
         <div className="flex flex-col h-full pt-safe">
           {/* Header */}
           <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex items-center gap-3 safe-top">
-            {(showMatches || showConfig || showTemplates || showActionsConfig || showPositionsConfig || showSettings || showHelp) && (
+            {(showMatches || showConfig || showTemplates || showPositionsConfig || showSettings || showHelp) && (
               <button
                 onClick={goBack}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 active:bg-gray-200 rounded-lg touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -298,13 +283,13 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
               </button>
             )}
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex-1">
-              {showMatches ? 'Matches' : showActionsConfig ? 'Configure Actions' : showPositionsConfig ? 'Start Positions' : showConfig ? 'Configuration' : showTemplates ? 'Configurations' : showSettings ? 'Settings' : showHelp ? 'Help & Info' : 'Menu'}
+              {showMatches ? 'Matches' : showPositionsConfig ? 'Start Positions' : showConfig ? 'Configuration' : showTemplates ? 'Configurations' : showSettings ? 'Settings' : showHelp ? 'Help & Info' : 'Menu'}
             </h2>
           </div>
 
           {/* Menu Items */}
           <div className="flex-1 overflow-y-auto p-4">
-            {!showMatches && !showConfig && !showTemplates && !showActionsConfig && !showPositionsConfig && !showSettings && !showHelp ? (
+            {!showMatches && !showConfig && !showTemplates && !showPositionsConfig && !showSettings && !showHelp ? (
               // Main Menu
               <div className="space-y-2">
                 {/* Matches Button */}
@@ -341,7 +326,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                     <div className="flex items-center gap-3">
                       <svg className="w-5 h-5 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 0112-1.227M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span className="font-medium text-gray-800 dark:text-gray-100">Configuration</span>
                     </div>
@@ -533,22 +518,8 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
             ) : showConfig ? (
               // Configuration Submenu
               <div className="space-y-2">
-                <button
-                  onClick={() => {
-                    setShowConfig(false);
-                    setShowActionsConfig(true);
-                  }}
-                  className="w-full flex items-center gap-3 p-3 text-left bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 rounded-lg transition touch-manipulation min-h-[48px]"
-                >
-                  <svg className="w-5 h-5 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
-                  <div>
-                    <div className="font-medium text-gray-800 dark:text-gray-100">Configure Actions</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Manage action groups and types</div>
-                  </div>
-                </button>
-
+                {/* Remove Configure Actions button - action groups are now locked */}
+                
                 <button
                   onClick={() => {
                     setShowConfig(false);
@@ -558,7 +529,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                 >
                   <svg className="w-5 h-5 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 0112-1.227M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div>
                     <div className="font-medium text-gray-800 dark:text-gray-100">Start Positions</div>
@@ -630,7 +601,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                 </div>
 
                 <div className="pt-4 border-t border-gray-200 dark:border-slate-800 mt-4">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Advanced configuration for actions, positions, and stored configurations. Changes apply to all matches.</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Configure start positions and manage stored configurations. Action groups are locked to Actions and Wait for terse format compatibility.</p>
                 </div>
               </div>
             ) : showHelp ? (
@@ -758,7 +729,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
                     </svg>
                     <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">Data Storage</h3>
                   </div>
@@ -807,7 +778,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                   <div className="flex items-center gap-2 mb-3">
                     <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 0112-1.227M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">Troubleshooting</h3>
                   </div>
@@ -831,18 +802,6 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                   </div>
                 </div>
               </div>
-            ) : showActionsConfig ? (
-              // Actions Configuration View
-              <ActionsConfigContent
-                actionGroups={actionGroups}
-                onRenameGroup={onRenameGroup}
-                onDeleteGroup={onDeleteGroup}
-                onAddActionToGroup={onAddActionToGroup}
-                onUpdateActionInGroup={onUpdateActionInGroup}
-                onDeleteActionInGroup={onDeleteActionInGroup}
-                onAddCustomGroup={onAddCustomGroup}
-                onExportConfig={onExportConfig}
-              />
             ) : showPositionsConfig ? (
               // Start Positions Configuration View
               <StartPositionsConfigContent

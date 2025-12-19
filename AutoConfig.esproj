@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="docs\" />
+    <Folder Include="examples\" />
     <Folder Include="public\schemas\" />
     <Folder Include="schemas\" />
     <Folder Include="scripts\" />

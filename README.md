@@ -48,21 +48,29 @@ A Progressive Web App (PWA) for configuring FTC autonomous routines. Built with 
 - **Delete Match**: Tap the delete (trash) icon on any match in the menu
 - **QR Navigation**: On the QR Code step, swipe left/right between matches or tap the indicator dots
 
-### Templates
+### Storing Configurations
 
 Save time by creating reusable configurations:
 
-1. Configure a match with your typical setup
-2. Open hamburger menu (?) ? "Save as Template"
-3. Enter a template name
-4. Load templates later via hamburger menu ? "Load Template"
+1. Add actions and start positions
+2. Open hamburger menu -> Configuration -> Store
+3. Enter a name for the configuration
+4. Click 'Store'
+4. Load configurations later via hamburger menu -> Configuration -> Load
 
+## Settings
 ### Appearance
 
 Change the app theme via hamburger menu ? Appearance:
 - **System**: Follows your device's dark/light mode preference
 - **Light**: Always use light mode
 - **Dark**: Always use dark mode
+
+### Distance Units
+Toggle display units between Inches and Meters
+
+### Angle Units
+Toggle between degrees and radians
 
 ## Advanced Configuration
 
@@ -86,29 +94,12 @@ Actions are the individual steps in your autonomous routine:
 1. Navigate to Configure Actions (see above)
 2. Expand the desired group
 3. **Add an Action**:
-   - Enter an action ID (e.g., "spike_1")
+   - Action Id will be auto generated
    - Enter a display label (e.g., "Spike 1")
-   - Optionally add configuration fields (see below)
    - Tap "Add Action"
-4. **Edit an Action**: Modify the ID or label fields directly
+4. **Edit an Action**: Modify the label
 5. **Delete an Action**: Tap the trash icon next to the action
 
-### Adding Action Configuration Fields
-
-Configuration fields let you customize action behavior (like wait times, distances, etc.):
-
-1. When adding or editing an action, tap "+ Add field" or "+ Add config"
-2. **For each field**:
-   - Enter a key name (e.g., "duration", "distance")
-   - Select the type (Number or Text)
-   - Enter a default value
-   - Tap the + button to add it
-3. **Remove a field**: Tap the × next to the field
-
-**Example**: A "Wait" action might have a config field:
-- Key: `duration`
-- Type: Number
-- Value: `2` (seconds)
 
 ### Managing Start Positions
 
@@ -116,10 +107,10 @@ Customize preset starting positions:
 
 1. Open hamburger menu (?) ? Configuration ? Start Positions
 2. **Add a Position**:
-   - Enter position ID (e.g., "left")
+   - Start Position Id will be auto generated
    - Enter display label (e.g., "Left Side")
    - Tap "Add Position"
-3. **Edit a Position**: Modify the ID or label directly
+3. **Edit a Position**: Modify the label
 4. **Delete a Position**: Tap the trash icon
 
 **Note**: The "Custom" position with X, Y, ? fields is always available and cannot be removed.
@@ -373,7 +364,7 @@ All data is stored locally in the browser:
 
 **Restore**:
 - Matches: Use "Load Template" feature (imports the full match set)
-- Configuration: Currently manual (copy action groups/positions from exported JSON)
+- Configuration: Use Configuration -> Load
 
 ## Troubleshooting
 
@@ -401,20 +392,6 @@ All data is stored locally in the browser:
 - Try closing and reopening the app tab
 - Wait a few moments after deployment (service worker needs time to register)
 
-## Contributing
-
-This is an internal tool for FTC Team 24180. For team members:
-
-1. Create a feature branch
-2. Make your changes
-3. Test locally with `npm run dev`
-4. Push and create a pull request
-5. After review, merge to `main` for automatic deployment
-
-## License
-
-This project is part of FTC Team 24180's programming tools.
-
 ## Support
 
 For issues or questions:
@@ -425,15 +402,3 @@ For issues or questions:
 ---
 
 ## Version History
-
-### v2.1.0 (Current)
-- ? Auto-update system - no more hard refreshes!
-- ? Combined QR code view for all matches
-- ?? Improved action picker UI
-- ?? Various bug fixes
-
-### v2.0.0
-- ?? Initial PWA release
-- ? Multi-match support
-- ? Configuration management
-- ? QR code generation

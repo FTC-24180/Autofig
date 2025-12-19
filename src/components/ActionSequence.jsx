@@ -77,7 +77,7 @@ export function ActionSequence({
   };
 
   return (
-    <div className="mb-4">
+    <div>
       <div className="flex justify-between items-center mb-2">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Action Sequence</label>
         {actionList.length > 0 && (
@@ -87,7 +87,7 @@ export function ActionSequence({
         )}
       </div>
 
-      <div className="space-y-2 max-h-96 overflow-y-auto">
+      <div className="space-y-2">
         {actionList.map((action, index) => (
           <div
             key={action.id}

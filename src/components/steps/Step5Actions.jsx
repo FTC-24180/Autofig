@@ -46,12 +46,12 @@ export function Step5Actions({
     <WizardStep 
       title="Configure Actions"
       subtitle="Build your autonomous sequence"
-      className="pb-4"
+      className="pb-4 flex flex-col h-full"
     >
       {/* Render panel via portal */}
       {panelElement}
 
-      <div className="space-y-4">
+      <div className="flex-1 flex flex-col min-h-0 space-y-4">
         {/* Show large empty state when no actions */}
         {actionList.length === 0 ? (
           <div className="space-y-4">
@@ -71,8 +71,8 @@ export function Step5Actions({
           </div>
         ) : (
           <>
-            {/* Action List */}
-            <div>
+            {/* Action List - scrolls when it would push the button off screen */}
+            <div className="flex-1 min-h-0 overflow-y-auto">
               <ActionSequence
                 actionList={actionList}
                 dragIndex={dragHandlers.dragIndex}
@@ -89,10 +89,10 @@ export function Step5Actions({
               />
             </div>
 
-            {/* Add Action Button - as last item in list */}
+            {/* Add Action Button - stays fixed at bottom */}
             <button
               onClick={openPanel}
-              className="w-full flex items-center justify-center gap-2 py-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-semibold transition min-h-[56px] touch-manipulation shadow-md"
+              className="flex-shrink-0 w-full flex items-center justify-center gap-2 py-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-semibold transition min-h-[56px] touch-manipulation shadow-md"
             >
               <svg 
                 className="w-6 h-6"

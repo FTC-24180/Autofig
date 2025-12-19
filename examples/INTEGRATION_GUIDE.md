@@ -1,77 +1,69 @@
-# FTC AutoConfig OpMode Integration Guide
+# FTC AutoConfig Integration Guide
 
-## Quick Start
+## Quick Start - Terse Format (Recommended)
 
-### Step 1: Add Dependencies
+The terse format is the primary method for transferring match data via QR codes. It's compact, efficient, and designed specifically for FTC competitions.
 
-Add Gson to your `build.gradle`:
+### Step 1: Scan QR Code
 
-```gradle
-dependencies {
-    implementation 'com.google.code.gson:gson:2.10.1'
-}
-```
+Use the Limelight QR Scanner OpMode to scan QR codes from the AutoConfig web app:
 
-### Step 2: Copy Helper Classes
+1. **Configure Limelight** for barcode detection (Pipeline 0)
+2. **Copy files** to TeamCode:
+   - `LimelightQRScannerOpMode.java`
+   - `TerseMatchCodec.java` or `TerseMatchDecoder.java`
+   - `MatchDataConfig.java`
+3. **Run OpMode** and scan QR codes
+4. **Save** unified JSON to `/sdcard/FIRST/match-data.json`
 
-Copy these files to your TeamCode:
-- `AutoConfigParser.java` ? `org/firstinspires/ftc/teamcode/auto/config/`
-- `MatchDataModels.java` ? `org/firstinspires/ftc/teamcode/auto/config/`
-
-### Step 3: Export Match Data
-
-1. Open the AutoConfig web app
-2. Configure your match
-3. Tap "Export JSON" or scan QR code
-4. Save file to `/sdcard/FIRST/match-data.json` on your robot phone
-
-### Step 4: Create OpMode
+### Step 2: Decode Terse Format
 
 ```java
 @Autonomous(name = "Auto Match 1", group = "Competition")
 public class AutoMatch1 extends LinearOpMode {
-    private static final String FILE_PATH = "/sdcard/FIRST/match-data.json";
-    private static final int MATCH_NUMBER = 1;
-    
     @Override
     public void runOpMode() {
-        // Parse match data
-        AutoConfigParser parser = new AutoConfigParser();
-        MatchDataConfig config = parser.parseFile(FILE_PATH);
-        Match match = parser.getMatchByNumber(config, MATCH_NUMBER);
+        // Terse format example: 5RS1W1A1A3W2.5A6
+        String terseCode = "5RS1W1A1A3W2.5A6";
         
-        // Initialize robot hardware
-        // ... your hardware initialization ...
+        // Decode
+        TerseMatchDecoder.Match match = TerseMatchDecoder.decode(terseCode);
         
         waitForStart();
         
-        // Execute autonomous
-        executeAutonomous(match);
-    }
-    
-    private void executeAutonomous(Match match) {
-        // Set start position
-        StartPosition start = match.alliance.auto.startPosition;
-        if (start.isCustom()) {
-            setPose(start.getX(), start.getY(), start.getTheta());
-        }
+        // Use match data
+        telemetry.addData("Match", match.matchNumber);
+        telemetry.addData("Alliance", match.alliance);
+        telemetry.addData("Start Pos", match.startPosition);
         
         // Execute actions
-        for (Action action : match.alliance.auto.actions) {
-            executeAction(action);
-        }
-    }
-    
-    private void executeAction(Action action) {
-        switch (action.type) {
-            case "wait":
-                sleep(action.getConfigInt("waitTime", 1000));
-                break;
-            // ... implement your actions ...
+        for (TerseMatchDecoder.Action action : match.actions) {
+            if (action.type.equals("wait")) {
+                sleep(TerseMatchDecoder.secondsToMillis(action.waitTimeSeconds));
+            } else {
+                // Execute action based on type (e.g., "A1", "A3")
+                executeAction(action.type);
+            }
         }
     }
 }
 ```
+
+### Terse Format Specification
+
+Format: `{n}[R|B]S{startPos}[W{sec}|A{actionId}]*`
+
+- `{n}` - Match number
+- `[R|B]` - Alliance (R=red, B=blue)
+- `S{startPos}` - Start position number
+- `W{sec}` - Wait action (seconds, supports decimals like `W2.5`)
+- `A{actionId}` - Action by ID (e.g., `A1`, `A3`)
+
+Examples:
+- `5RS1W1A1A3W2.5A6` - Match 5, Red, Position 1, Wait 1s, A1, A3, Wait 2.5s, A6
+- `12BS2W0.5A1W2A3` - Match 12, Blue, Position 2, Wait 0.5s, A1, Wait 2s, A3
+
+See [TERSE_FORMAT.md](TERSE_FORMAT.md) for complete specification.
 
 ## QR Code Scanner with Limelight 3A
 
@@ -84,8 +76,8 @@ Use the `LimelightQRScannerOpMode` to scan QR codes from the AutoConfig web app 
 1. **Configure Limelight** for barcode detection (Pipeline 0)
 2. **Copy files** to TeamCode:
    - `LimelightQRScannerOpMode.java`
-   - `AutoConfigParser.java`
-   - `MatchDataModels.java`
+   - `TerseMatchCodec.java`
+   - `MatchDataConfig.java`
 3. **Run OpMode** and scan QR codes
 4. **Save** unified JSON to `/sdcard/FIRST/match-data.json`
 
@@ -103,138 +95,79 @@ Use the `LimelightQRScannerOpMode` to scan QR codes from the AutoConfig web app 
 
 - ? No manual file transfer needed
 - ? Scan multiple QR codes and merge automatically
-- ? Validate JSON format before saving
+- ? Validate format before saving
 - ? Real-time preview and error handling
 - ? Perfect for quick match-to-match updates
 
-**See full documentation**: [Limelight QR Scanner Guide](LIMELIGHT_QR_SCANNER_GUIDE.md)
-
-## Data Structure Reference
-
-### Root Object
-```json
-{
-  "version": "1.0.0",
-  "matches": [ /* matches array */ ]
-}
-```
-
-### Accessing Match Data
-
-```java
-// Get specific match
-Match match = parser.getMatchByNumber(config, 1);
-
-// Get match info
-int matchNum = match.number;
-String alliance = match.alliance.color;  // "red" or "blue"
-int partner = match.alliance.team_number;
-
-// Get start position
-StartPosition start = match.alliance.auto.startPosition;
-boolean isCustom = start.isCustom();
-double x = start.getX();
-double y = start.getY();
-double heading = start.getTheta();
-
-// Get actions
-List<Action> actions = match.alliance.auto.actions;
-for (Action action : actions) {
-    String type = action.type;
-    String label = action.label;
-    
-    // Get config values
-    if (action.hasConfig()) {
-        int waitTime = action.getConfigInt("waitTime", 0);
-        double speed = action.getConfigDouble("speed", 1.0);
-        String target = action.getConfigString("target", "");
-    }
-}
-```
-
-## Common Action Types
-
-| Type | Description | Common Config |
-|------|-------------|---------------|
-| `wait` | Pause execution | `waitTime` (ms) |
-| `drive_to` | Navigate to coordinates | `x`, `y`, `target` |
-| `near_launch` | Launch from near position | - |
-| `far_launch` | Launch from far position | - |
-| `spike_1`, `spike_2`, `spike_3` | Navigate to spike marks | - |
-| `near_park`, `far_park` | Park in zones | - |
+**See full documentation**: [Limelight QR Scanner Guide](README-LIMELIGHT.md)
 
 ## Action Implementation Examples
 
 ### Wait Action
 ```java
-private void executeWait(Action action) {
-    int duration = action.getConfigInt("waitTime", 1000);
+private void executeWait(TerseMatchDecoder.Action action) {
+    int duration = TerseMatchDecoder.secondsToMillis(action.waitTimeSeconds);
     sleep(duration);
 }
 ```
 
-### Drive To Action
+### Custom Actions
 ```java
-private void executeDriveTo(Action action) {
-    double x = action.getConfigDouble("x", 0);
-    double y = action.getConfigDouble("y", 0);
-    String target = action.getConfigString("target", "");
-    
-    Pose2d targetPose = new Pose2d(x, y, drive.getPoseEstimate().getHeading());
-    drive.followTrajectory(
-        drive.trajectoryBuilder(drive.getPoseEstimate())
-            .lineToLinearHeading(targetPose)
-            .build()
-    );
+private void executeAction(String actionType) {
+    switch (actionType) {
+        case "A1":
+            // Your A1 implementation
+            break;
+        case "A2":
+            // Your A2 implementation
+            break;
+        case "A3":
+            // Your A3 implementation
+            break;
+        default:
+            telemetry.addData("Warning", "Unknown action: " + actionType);
+    }
 }
 ```
 
-### Custom Action with Config
-```java
-private void executeCustomAction(Action action) {
-    // Get parameters with defaults
-    double speed = action.getConfigDouble("speed", 0.75);
-    boolean reversed = action.getConfigBoolean("reversed", false);
-    String target = action.getConfigString("target", "default");
-    
-    // Execute based on config
-    setDriveSpeed(speed);
-    if (reversed) reverseDirection();
-    navigateToTarget(target);
+## Alternative: JSON Export
+
+The web app can also export matches as JSON for backup or manual integration. This is optional and mainly for debugging or backup purposes.
+
+### JSON Structure
+```json
+{
+  "version": "1.0.0",
+  "matches": [
+    {
+      "match": {
+        "number": 1,
+        "alliance": {
+          "color": "red",
+          "team_number": 24180,
+          "auto": {
+            "startPosition": {"type": "front"},
+            "actions": [
+              {"type": "wait", "label": "Wait", "config": {"waitTime": 1000}},
+              {"type": "A1", "label": "Action 1"}
+            ]
+          }
+        }
+      }
+    }
+  ]
 }
 ```
 
 ## Error Handling
 
-### File Not Found
+### Terse Decode Errors
 ```java
 try {
-    MatchDataConfig config = parser.parseFile(FILE_PATH);
-} catch (IOException e) {
-    telemetry.addData("Error", "Match data file not found");
-    telemetry.addData("Path", FILE_PATH);
-    telemetry.update();
-    return;
-}
-```
-
-### Invalid JSON
-```java
-try {
-    MatchDataConfig config = parser.parseJson(jsonString);
+    TerseMatchDecoder.Match match = TerseMatchDecoder.decode(terseCode);
 } catch (IllegalArgumentException e) {
-    telemetry.addData("Error", "Invalid match data");
+    telemetry.addData("Error", "Invalid terse format");
     telemetry.addData("Message", e.getMessage());
-    telemetry.update();
-    return;
-}
-```
-
-### Missing Match
-```java
-Match match = parser.getMatchByNumber(config, matchNumber);
-if (match == null) {
-    telemetry.addData("Error", "Match " + matchNumber + " not found");
     telemetry.update();
     return;
 }
@@ -242,126 +175,39 @@ if (match == null) {
 
 ### Unknown Action Type
 ```java
-private void executeAction(Action action) {
-    switch (action.type) {
-        case "known_action":
+private void executeAction(String actionType) {
+    switch (actionType) {
+        case "A1":
             // handle action
             break;
         default:
-            telemetry.addData("Warning", "Unknown action: " + action.type);
+            telemetry.addData("Warning", "Unknown action: " + actionType);
             telemetry.addLine("Skipping...");
-            telemetry.update();
             // Continue with next action
-    }
-}
-```
-
-## Advanced Features
-
-### Filter by Alliance
-```java
-// Get all red alliance matches
-List<Match> redMatches = parser.getMatchesByAlliance(config, "red");
-
-// Get all blue alliance matches
-List<Match> blueMatches = parser.getMatchesByAlliance(config, "blue");
-```
-
-### Multiple Match Support
-```java
-// Create separate OpModes for each match
-@Autonomous(name = "Auto Match 1")
-public class AutoMatch1 extends AutoConfigOpModeBase {
-    protected int getMatchNumber() { return 1; }
-}
-
-@Autonomous(name = "Auto Match 2")
-public class AutoMatch2 extends AutoConfigOpModeBase {
-    protected int getMatchNumber() { return 2; }
-}
-```
-
-### Custom Start Position Mapping
-```java
-private void setStartPosition(StartPosition position) {
-    if (position.isCustom()) {
-        // Use exact coordinates
-        drive.setPoseEstimate(new Pose2d(
-            position.getX(),
-            position.getY(),
-            Math.toRadians(position.getTheta())
-        ));
-    } else {
-        // Map preset names to poses
-        Pose2d pose = switch (position.type) {
-            case "front" -> FRONT_START_POSE;
-            case "back" -> BACK_START_POSE;
-            case "left" -> LEFT_START_POSE;
-            case "right" -> RIGHT_START_POSE;
-            default -> DEFAULT_POSE;
-        };
-        drive.setPoseEstimate(pose);
     }
 }
 ```
 
 ## Best Practices
 
-1. **Always validate data** before execution
-2. **Use try-catch blocks** for file operations
-3. **Provide defaults** for optional config values
-4. **Log unknown actions** instead of crashing
-5. **Test with sample data** before competition
-6. **Keep match files organized** by date/event
-7. **Back up match data** before each match
+1. **Use terse format** for QR codes (compact and efficient)
+2. **Define action mappings** in your OpMode comments
+3. **Test with sample codes** before competition
+4. **Keep QR scanner OpMode** available for quick updates
+5. **Save JSON backups** for disaster recovery
+6. **Log unknown actions** instead of crashing
 
-## Troubleshooting
-
-### "File not found" Error
-- Check file path matches your device
-- Verify file is in `/sdcard/FIRST/` directory
-- Ensure file has `.json` extension
-- Check file permissions
-
-### "Unsupported version" Error
-- Update parser classes to latest version
-- Check schema version in JSON matches parser
-- Regenerate match data from web app
-
-### Actions Not Executing
-- Verify action types match your switch statement
-- Check for typos in action type strings
-- Add logging to see which actions are received
-- Ensure `opModeIsActive()` checks are present
-
-### Config Values Wrong Type
-- Use appropriate getter methods:
-  - `getConfigInt()` for integers
-  - `getConfigDouble()` for decimals
-  - `getConfigString()` for text
-  - `getConfigBoolean()` for true/false
-- Always provide default values
-
-## File Location Tips
-
-### Recommended Structure
+## File Organization
 ```
 /sdcard/FIRST/
-  ??? match-data.json          (current matches)
-  ??? backup/
-  ?   ??? match-data-2024-01-15.json
-  ?   ??? match-data-2024-01-20.json
-  ??? testing/
-      ??? test-match-data.json
+??? match-data.json          (current matches, scanned from QR)
+??? backup/
+    ??? match-data-2024-01-15.json
+    ??? match-data-2024-01-20.json
 ```
 
-### Transferring Files
-1. **USB**: Connect phone, copy to `/sdcard/FIRST/`
-2. **ADB**: `adb push match-data.json /sdcard/FIRST/`
-3. **QR Code**: Scan in web app, save directly
-4. **Cloud**: Download from Drive/Dropbox to phone
-
 ## See Also
-- [Match Data Schema Documentation](MATCH_DATA_SCHEMA.md)
-- [JSON Schema Definition](../schemas/ftc-match-data-schema.json)
-- [Example OpMode](AutoConfigOpModeExample.java)
+- [Terse Format Specification](TERSE_FORMAT.md)
+- [Limelight Scanner Guide](README-LIMELIGHT.md)
+- [Terse Decoder](TerseMatchDecoder.java)
+- [QR Scanner OpMode](LimelightQRScannerOpMode.java)

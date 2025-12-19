@@ -4,11 +4,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Data classes for FTC AutoConfig match data
- * Schema Version: 1.0.0
+ * Data classes for FTC AutoConfig match data JSON representation
  * 
  * These classes represent the JSON structure from the AutoConfig web app.
- * All model classes are nested within MatchDataConfig for proper encapsulation.
+ * Used internally by the QR scanner and terse decoder for JSON output.
  */
 public class MatchDataConfig {
     public String version;

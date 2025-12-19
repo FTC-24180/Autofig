@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getStorageItem, setStorageItem, removeStorageItem, STORAGE_KEYS } from '../utils/storageUtils';
 
-// Schema version for exported match data
-const MATCH_DATA_SCHEMA_VERSION = '1.0.0';
+// Version for exported match data (informal, for reference only)
+const EXPORT_DATA_VERSION = '1.0.0';
 
 export function useMatches() {
   const [matches, setMatches] = useState(() => {
@@ -85,9 +85,9 @@ export function useMatches() {
   };
 
   const exportAllMatches = () => {
-    // Export in the correct hierarchical structure with schema version
+    // Export in hierarchical JSON structure
     const config = {
-      version: MATCH_DATA_SCHEMA_VERSION,
+      version: EXPORT_DATA_VERSION,
       matches: matches.map(({ id, matchNumber, partnerTeam, alliance, startPosition, actions }) => ({
         match: {
           number: matchNumber,
@@ -96,7 +96,7 @@ export function useMatches() {
             team_number: partnerTeam ? parseInt(partnerTeam) || 0 : 0,
             auto: {
               startPosition: startPosition,
-              // Keep type (id) and label, omit only internal UUID
+              // Keep type and label, omit internal UUID
               actions: actions.map(({ id, ...rest }) => rest)
             }
           }
@@ -111,7 +111,7 @@ export function useMatches() {
     if (!match) return null;
 
     return {
-      version: MATCH_DATA_SCHEMA_VERSION,
+      version: EXPORT_DATA_VERSION,
       match: {
         number: match.matchNumber,
         alliance: {
@@ -119,7 +119,7 @@ export function useMatches() {
           team_number: match.partnerTeam ? parseInt(match.partnerTeam) || 0 : 0,
           auto: {
             startPosition: match.startPosition,
-            // Keep type (id) and label, omit only internal UUID
+            // Keep type and label, omit internal UUID
             actions: match.actions.map(({ id, ...rest }) => rest)
           }
         }
@@ -144,7 +144,7 @@ export function useMatches() {
             ...action,
             // Generate new internal UUID for this instance
             id: crypto.randomUUID(),
-            // Ensure label exists (should always be present now)
+            // Ensure label exists
             label: action.label || action.type
           }))
         };
@@ -170,6 +170,6 @@ export function useMatches() {
     exportAllMatches,
     exportSingleMatch,
     importMatches,
-    SCHEMA_VERSION: MATCH_DATA_SCHEMA_VERSION
+    EXPORT_VERSION: EXPORT_DATA_VERSION
   };
 }

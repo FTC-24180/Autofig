@@ -99,8 +99,17 @@ export function useStartPositions() {
     setStartPositions(prev => prev.filter((_, i) => i !== index));
   };
 
+  /**
+   * Sort start positions by key (S1, S2, S3, etc.)
+   */
+  const sortedStartPositions = [...startPositions].sort((a, b) => {
+    const aNum = parseInt(a.key.substring(1)) || 0;
+    const bNum = parseInt(b.key.substring(1)) || 0;
+    return aNum - bNum;
+  });
+
   return {
-    startPositions,
+    startPositions: sortedStartPositions,
     addStartPosition,
     updateStartPosition,
     deleteStartPosition

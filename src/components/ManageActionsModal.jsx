@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AddItemForm } from './common/AddItemForm';
+import { parseWaitTimeText, formatWaitTimeForDisplay, parseWaitTime } from '../utils/terseEncoder';
 
 function AddActionForm({ groupKey, onAdd }) {
   const [id, setId] = useState('');
@@ -142,6 +143,58 @@ export function ManageActionsModal({
   onDeleteActionInGroup,
   onAddCustomGroup
 }) {
+  const [editingWaitKey, setEditingWaitKey] = useState(null);
+  const [waitTextInputs, setWaitTextInputs] = useState({});
+  const [waitTextErrors, setWaitTextErrors] = useState({});
+
+  const handleWaitInputFocus = (groupKey, actionIdx, currentMs) => {
+    const key = `${groupKey}-${actionIdx}`;
+    setEditingWaitKey(key);
+    setWaitTextInputs({ ...waitTextInputs, [key]: formatWaitTimeForDisplay(currentMs) });
+    setWaitTextErrors({ ...waitTextErrors, [key]: null });
+  };
+
+  const handleWaitInputChange = (groupKey, actionIdx, text) => {
+    const key = `${groupKey}-${actionIdx}`;
+    setWaitTextInputs({ ...waitTextInputs, [key]: text });
+    
+    const result = parseWaitTimeText(text);
+    if (result.error) {
+      setWaitTextErrors({ ...waitTextErrors, [key]: result.error });
+    } else {
+      setWaitTextErrors({ ...waitTextErrors, [key]: null });
+    }
+  };
+
+  const handleWaitInputBlur = (groupKey, actionIdx, act) => {
+    const key = `${groupKey}-${actionIdx}`;
+    const text = waitTextInputs[key] || '';
+    const result = parseWaitTimeText(text);
+    
+    if (result.value !== null) {
+      const milliseconds = parseWaitTime(result.value);
+      const newConfig = { ...act.config, waitTime: milliseconds };
+      onUpdateActionInGroup(groupKey, actionIdx, { config: newConfig });
+      
+      if (result.error) {
+        // Show warning for 3 seconds
+        setTimeout(() => {
+          setWaitTextErrors({ ...waitTextErrors, [key]: null });
+          setEditingWaitKey(null);
+        }, 3000);
+      } else {
+        setWaitTextErrors({ ...waitTextErrors, [key]: null });
+        setEditingWaitKey(null);
+      }
+    } else if (result.error) {
+      // Keep showing error
+    } else {
+      // Empty input - keep current value
+      setWaitTextErrors({ ...waitTextErrors, [key]: null });
+      setEditingWaitKey(null);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 z-50 p-4 flex items-start justify-center overflow-y-auto"
@@ -170,7 +223,7 @@ export function ManageActionsModal({
         <div className="mb-4">
           <h4 className="font-semibold text-gray-800 dark:text-gray-100">Available Actions</h4>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Configure action types, groups, and default parameters for use in matches.
+            Configure action types, groups, and default parameters. Wait times: enter "2.5s", "500ms", or "1 second".
           </p>
         </div>
 
@@ -238,6 +291,81 @@ export function ManageActionsModal({
                         </div>
                         {Object.entries(act.config).map(([key, value], configIdx) => {
                           const isNumber = typeof value === 'number';
+                          const waitKey = `${gk}-${idx}`;
+                          const isEditingThis = editingWaitKey === waitKey;
+                          
+                          // Special handling for waitTime
+                          if (key === 'waitTime') {
+                            const displayValue = isEditingThis && waitTextInputs[waitKey] !== undefined
+                              ? waitTextInputs[waitKey]
+                              : formatWaitTimeForDisplay(value);
+                            const error = waitTextErrors[waitKey];
+                            
+                            return (
+                              <div key={configIdx} className="flex gap-2 items-start">
+                                <input
+                                  value={key}
+                                  onChange={(e) => {
+                                    const newConfig = { ...act.config };
+                                    delete newConfig[key];
+                                    newConfig[e.target.value] = value;
+                                    onUpdateActionInGroup(gk, idx, { config: newConfig });
+                                  }}
+                                  className="px-2 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-100 rounded w-24 text-xs"
+                                  placeholder="key name"
+                                />
+                                <select
+                                  value="number"
+                                  disabled
+                                  className="px-2 py-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-100 rounded w-20 text-xs opacity-50"
+                                >
+                                  <option value="number">Number</option>
+                                </select>
+                                <div className="flex-1 flex flex-col gap-1">
+                                  <input
+                                    type="text"
+                                    value={displayValue}
+                                    onFocus={() => handleWaitInputFocus(gk, idx, value)}
+                                    onChange={(e) => handleWaitInputChange(gk, idx, e.target.value)}
+                                    onBlur={() => handleWaitInputBlur(gk, idx, act)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') e.target.blur();
+                                      if (e.key === 'Escape') {
+                                        setWaitTextErrors({ ...waitTextErrors, [waitKey]: null });
+                                        setEditingWaitKey(null);
+                                      }
+                                    }}
+                                    placeholder="e.g., 2.5s or 500ms"
+                                    className={`px-2 py-1 border rounded dark:bg-slate-700 dark:text-gray-100 text-xs ${
+                                      isEditingThis && error
+                                        ? 'border-red-500 dark:border-red-400'
+                                        : 'border-gray-300 dark:border-slate-600'
+                                    }`}
+                                  />
+                                  {isEditingThis && error && (
+                                    <span className="text-xs text-red-600 dark:text-red-400">{error}</span>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    const newConfig = { ...act.config };
+                                    delete newConfig[key];
+                                    onUpdateActionInGroup(gk, idx, { 
+                                      config: Object.keys(newConfig).length > 0 ? newConfig : undefined 
+                                    });
+                                  }}
+                                  className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-slate-700 text-red-600 hover:text-red-700 transition"
+                                  title="Remove field"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                              </div>
+                            );
+                          }
+                          
+                          // Default handling for other fields
                           return (
                             <div key={configIdx} className="flex gap-2 items-center">
                               <input
@@ -293,7 +421,7 @@ export function ManageActionsModal({
                               >
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
+                                  </svg>
                               </button>
                             </div>
                           );

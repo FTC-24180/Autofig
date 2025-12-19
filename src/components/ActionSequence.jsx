@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { getActionDisplayLabel } from '../utils/actionUtils';
+import { parseWaitTimeText, formatWaitTimeForDisplay, parseWaitTime } from '../utils/terseEncoder';
 
 export function ActionSequence({
   actionList,
@@ -14,6 +16,66 @@ export function ActionSequence({
   onClearAll,
   dragHandlers
 }) {
+  const [editingWaitId, setEditingWaitId] = useState(null);
+  const [waitTextInput, setWaitTextInput] = useState('');
+  const [waitTextError, setWaitTextError] = useState(null);
+
+  const handleWaitInputFocus = (actionId, currentMs) => {
+    setEditingWaitId(actionId);
+    setWaitTextInput(formatWaitTimeForDisplay(currentMs));
+    setWaitTextError(null);
+  };
+
+  const handleWaitInputChange = (e) => {
+    const text = e.target.value;
+    setWaitTextInput(text);
+    
+    const result = parseWaitTimeText(text);
+    if (result.error) {
+      setWaitTextError(result.error);
+    } else {
+      setWaitTextError(null);
+    }
+  };
+
+  const handleWaitInputBlur = (actionId) => {
+    const result = parseWaitTimeText(waitTextInput);
+    
+    if (result.value !== null) {
+      const milliseconds = parseWaitTime(result.value);
+      onUpdateActionConfig(actionId, 'waitTime', milliseconds);
+      
+      // Show warning if value was adjusted
+      if (result.error) {
+        setWaitTextError(result.error);
+        setTimeout(() => {
+          setWaitTextError(null);
+          setEditingWaitId(null);
+        }, 3000);
+      } else {
+        setWaitTextError(null);
+        setEditingWaitId(null);
+      }
+    } else if (result.error) {
+      // Keep showing error
+      setWaitTextError(result.error);
+    } else {
+      // Empty input - keep current value
+      setWaitTextError(null);
+      setEditingWaitId(null);
+    }
+  };
+
+  const handleWaitInputKeyDown = (e, actionId) => {
+    if (e.key === 'Enter') {
+      e.target.blur();
+    } else if (e.key === 'Escape') {
+      setWaitTextError(null);
+      setEditingWaitId(null);
+      setWaitTextInput('');
+    }
+  };
+
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-2">
@@ -47,8 +109,49 @@ export function ActionSequence({
               </span>
 
               {action.config && Object.keys(action.config).length > 0 && (
-                <div className="flex gap-2 items-center">
+                <div className="flex gap-2 items-center flex-wrap">
                   {Object.entries(action.config).map(([key, value]) => {
+                    // Special handling for waitTime - text input
+                    if (key === 'waitTime') {
+                      const isEditing = editingWaitId === action.id;
+                      const displayValue = isEditing 
+                        ? waitTextInput 
+                        : formatWaitTimeForDisplay(value);
+                      
+                      return (
+                        <div key={key} className="flex flex-col gap-1 min-w-[140px]">
+                          <div className="flex items-center gap-1">
+                            <label className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">wait:</label>
+                            <input
+                              type="text"
+                              value={displayValue}
+                              onFocus={() => handleWaitInputFocus(action.id, value)}
+                              onChange={handleWaitInputChange}
+                              onBlur={() => handleWaitInputBlur(action.id)}
+                              onKeyDown={(e) => handleWaitInputKeyDown(e, action.id)}
+                              placeholder="e.g., 2.5s"
+                              className={`flex-1 px-2 py-1 text-xs border rounded dark:bg-slate-900 dark:text-gray-100 ${
+                                isEditing && waitTextError 
+                                  ? 'border-red-500 dark:border-red-400' 
+                                  : 'border-gray-300 dark:border-slate-600'
+                              }`}
+                            />
+                          </div>
+                          {isEditing && waitTextError && (
+                            <div className="text-xs text-red-600 dark:text-red-400 leading-tight">
+                              {waitTextError}
+                            </div>
+                          )}
+                          {!isEditing && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+                              Click to edit
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    
+                    // Default handling for other config fields
                     const isNumber = typeof value === 'number';
                     return (
                       <div key={key} className="flex items-center gap-1">
@@ -70,7 +173,7 @@ export function ActionSequence({
                 </div>
               )}
 
-              <div className="flex gap-1">
+              <div className="flex gap-1 flex-shrink-0">
                 <button
                   onClick={() => onMoveAction(action.id, 'up')}
                   disabled={index === 0}

@@ -16,12 +16,12 @@ Ultra-compact string format - match number starts immediately with no prefix.
 - `{n}` = Match number (required, starts string, no prefix)
 - `[R|B]` = Alliance color: R=red, B=blue (required)
 - `S{n}` = Start position ID (required)
-- `W{sec}` = Wait action in **integer seconds** (optional, repeatable)
+- `W{sec}` = Wait action in **decimal seconds** (optional, repeatable)
 - `A{n}` = Action by ID (optional, repeatable)
 
 ### Example
 ```
-5RS1W1A1A3A1A4W1A1A5A1A6
+5RS1W1A1A3W2.5A1A4W1A5A6
 ```
 
 **Decoded:**
@@ -31,15 +31,14 @@ Ultra-compact string format - match number starts immediately with no prefix.
 - Wait 1 second
 - Action 1 (near_launch)
 - Action 3 (spike_1)
+- Wait 2.5 seconds
 - Action 1 (near_launch)
 - Action 4 (spike_2)
 - Wait 1 second
-- Action 1 (near_launch)
 - Action 5 (spike_3)
-- Action 1 (near_launch)
 - Action 6 (near_park)
 
-**Size:** 26 bytes! (74 bytes remaining)
+**Size:** 28 bytes! (72 bytes remaining)
 
 ## Format Specification
 
@@ -73,17 +72,28 @@ Ultra-compact string format - match number starts immediately with no prefix.
 | 9 | corner | 2 |
 | 10 | drive_to | 3 |
 
-### Wait Action
+### Wait Action (Decimal Seconds)
 | Format | Example | Meaning | Bytes |
 |--------|---------|---------|-------|
-| `W{sec}` | `W1` | Wait 1 second | 2 |
-| `W{sec}` | `W2` | Wait 2 seconds | 2 |
-| `W{sec}` | `W10` | Wait 10 seconds | 3 |
+| `W{sec}` | `W1` | Wait 1.0 second | 2 |
+| `W{sec}` | `W2.5` | Wait 2.5 seconds | 4 |
+| `W{sec}` | `W0.5` | Wait 0.5 seconds | 4 |
+| `W{sec}` | `W10` | Wait 10.0 seconds | 3 |
 
-**Note:** Wait times are in **integer seconds only**. Sub-second waits are rounded to nearest second.
-- 0-499ms ? W0 (no wait)
-- 500-1499ms ? W1
-- 1500-2499ms ? W2
+**Format Details:**
+- Wait times are in **decimal seconds** (e.g., `1`, `2.5`, `0.5`)
+- Trailing zeros are removed (`1.0` ? `1`, `2.50` ? `2.5`)
+- Precision: tenths of a second (0.1s = 100ms)
+- Range: 0.1s to 30s
+- Most common waits (integer seconds) use only 2-3 bytes
+- Sub-second waits add 2 characters for decimal (`W2.5`)
+
+**Examples:**
+- `W1` = 1.0s = 1000ms (2 bytes)
+- `W0.5` = 0.5s = 500ms (4 bytes)
+- `W2.5` = 2.5s = 2500ms (4 bytes)
+- `W10` = 10.0s = 10000ms (3 bytes)
+- `W0.1` = 0.1s = 100ms (4 bytes)
 
 ## Size Analysis
 
@@ -91,31 +101,32 @@ Ultra-compact string format - match number starts immediately with no prefix.
 ```
 1RS1
 ```
-**Base overhead:** 4 bytes (saved 1 byte from removing M!)
+**Base overhead:** 4 bytes
 
-### Typical Match (No Waits)
+### Typical Match (Integer Second Waits)
 ```
-5RS1A1A3A1A4A1A5A6
+5RS1W1A1A3W1A1A4W1A1A5A6
 ```
 **Breakdown:**
 - Header: `5RS1` = 4 bytes
-- Actions: `A1A3A1A4A1A5A6` = 14 bytes (7 actions)
-- **Total:** 18 bytes (82 bytes remaining!)
+- Actions + Waits: 20 bytes (7 actions, 3 waits)
+- **Total:** 24 bytes (76 bytes remaining!)
 
-### With Waits
+### With Sub-Second Waits
 ```
-5RS1W1A1A3W1A1A4W1A1A5W2A6
+5RS1W0.5A1A3W2.5A1A4W1A5A6
 ```
 **Breakdown:**
 - Header: `5RS1` = 4 bytes
-- Actions + Waits: 22 bytes
-- **Total:** 26 bytes (74 bytes remaining)
+- Actions + Waits: 24 bytes (includes decimal waits)
+- **Total:** 28 bytes (72 bytes remaining)
 
 ### Maximum Actions
 With 100-byte limit and 4-byte header = **96 bytes for actions**
 
 **2-byte actions (A{n}):** 48 actions!  
-**With waits:** 30-40 actions typical  
+**With integer waits:** 30-40 actions typical  
+**With decimal waits:** 25-35 actions typical
 
 ## Comparison
 
@@ -123,8 +134,7 @@ With 100-byte limit and 4-byte header = **96 bytes for actions**
 |--------|--------------|---------|
 | Standard JSON | 300+ bytes | N/A |
 | Compact JSON | 68 bytes | 77% smaller |
-| Previous Terse (with M) | 27 bytes | 91% smaller |
-| **New Terse** | **26 bytes** | **91.3% smaller** ? |
+| **Terse (decimal seconds)** | **24-28 bytes** | **92% smaller** ? |
 
 ## Usage
 
@@ -133,108 +143,123 @@ With 100-byte limit and 4-byte header = **96 bytes for actions**
 ```java
 import org.firstinspires.ftc.teamcode.auto.config.TerseMatchCodec;
 
-// Encode match to terse format
-MatchDataConfig.Match match = /* ... */;
-String terse = TerseMatchCodec.encode(match);
-System.out.println("Terse: " + terse);
-
 // Decode terse format
-String scanned = "5RS1A1A3A6";
+String scanned = "5RS1W1A1A3W2.5A6";
 MatchDataConfig.Match decoded = TerseMatchCodec.decode(scanned);
+
+// Wait times are parsed as doubles (seconds)
+for (Action action : decoded.actions) {
+    if (action.type.equals("wait")) {
+        double seconds = action.waitTimeSeconds;  // e.g., 1.0, 2.5
+        int milliseconds = (int)(seconds * 1000); // e.g., 1000, 2500
+    }
+}
 ```
 
 ### JavaScript (Web App)
 
 ```javascript
-function encodeMatchToTerse(match) {
-  // Match number (no prefix)
-  let terse = `${match.matchNumber}`;
+import { encodeMatchToTerse, formatWaitTime, parseWaitTime } from './utils/terseEncoder';
+
+// Encode match to terse format
+const match = {
+  matchNumber: 5,
+  alliance: 'red',
+  startPosition: { type: 'S1' },
+  actions: [
+    { type: 'W', config: { waitTime: 1000 } },    // 1s ? W1
+    { type: 'A1' },
+    { type: 'W', config: { waitTime: 2500 } },    // 2.5s ? W2.5
+    { type: 'A3' }
+  ]
+};
+
+const terse = encodeMatchToTerse(match);
+console.log(terse); // "5RS1W1A1W2.5A3"
+
+// Convert between milliseconds and seconds
+formatWaitTime(1000);  // "1"
+formatWaitTime(2500);  // "2.5"
+formatWaitTime(500);   // "0.5"
+
+parseWaitTime(1);      // 1000
+parseWaitTime(2.5);    // 2500
+parseWaitTime(0.5);    // 500
+```
+
+## Parsing Algorithm
+
+The parser uses a **character-by-character scan** approach:
+
+```javascript
+function parseWaitTime(input, startIndex) {
+  let i = startIndex + 1; // Skip 'W'
+  let numStr = '';
   
-  // Alliance color
-  terse += match.alliance[0].toUpperCase(); // 'R' or 'B'
-  
-  // Start position
-  terse += `S${positionId(match.startPosition.type)}`;
-  
-  // Actions
-  for (const action of match.actions) {
-    if (action.type === 'wait') {
-      // Convert ms to seconds, round to nearest integer
-      const ms = action.config?.waitTime || 1000;
-      const sec = Math.round(ms / 1000);
-      terse += `W${sec}`;
-    } else {
-      terse += `A${actionId(action.type)}`;
-    }
+  // Continue while we have digits or decimal point
+  while (i < input.length && /[0-9.]/.test(input[i])) {
+    numStr += input[i];
+    i++;
   }
   
-  return terse;
-}
-
-function positionId(type) {
-  return { front: 1, back: 2, left: 3, right: 4, custom: 9 }[type] || 1;
-}
-
-function actionId(type) {
-  const ids = {
-    near_launch: 1, far_launch: 2,
-    spike_1: 3, spike_2: 4, spike_3: 5,
-    near_park: 6, far_park: 7,
-    dump: 8, corner: 9, drive_to: 10
-  };
-  return ids[type] || 99;
+  const seconds = parseFloat(numStr);
+  const milliseconds = Math.round(seconds * 1000);
+  
+  return { milliseconds, nextIndex: i };
 }
 ```
 
 ## Examples
 
-### Example 1: Minimal
+### Example 1: Simple Sequence
 ```
-1RS1A1A3A6
+1RS1W1A1A3A6
 ```
-10 bytes - Launch, Spike, Park
+12 bytes - 1s wait, Launch, Spike, Park
 
-### Example 2: With Waits
+### Example 2: Sub-Second Timing
 ```
-5RS1W1A1A3W1A1A4W1A1A5W2A6
+5RS1W0.5A1W2.5A3W1A6
 ```
-26 bytes - Full sequence
+20 bytes - Precise timing with decimal waits
 
 ### Example 3: Two-Digit Match
 ```
-12BS1W2A1A3A6
+12BS2W10A1A3A6
 ```
-14 bytes - Still fits easily!
+15 bytes - 10s wait (3 bytes)
 
 ## Auto-Detection
 
-Scanner detects: `^\d+[RB]S\d+.*$`
+Scanner detects terse format: `^\d+[RB]S\d+.*$`
 
-Pattern matches match number at start, no M prefix needed!
+Pattern matches match number at start, no prefix needed!
 
 ## Advantages
 
-? **Smallest possible:** No wasted prefix character  
-? **Integer seconds:** Simple, no decimal parsing  
-? **48 max actions:** One more than before!  
-? **Clean:** Match number is obvious at start  
+? **Compact:** Integer seconds use only 2-3 bytes  
+? **Precise:** Sub-second resolution when needed (0.1s)  
+? **Flexible:** Decimal format adapts to precision required  
+? **Human-readable:** `W1` and `W2.5` are intuitive  
+? **Efficient:** Most waits are integers, rare decimals don't hurt much  
+? **Simple parsing:** No special encoding, just parse decimal numbers  
 
 ## Disadvantages
 
-? **No sub-second precision:** Rounds to nearest second  
-? **No team number:** Not stored  
+? **Variable length:** Decimal waits take 2 more bytes than integers  
+? **Parsing complexity:** Parser must handle decimals (not just integers)  
 
 ## Migration Note
 
 **Breaking change from previous version:**
-- Old: `M5RS1...` 
-- New: `5RS1...`
+- Old: `W1` = 1 second (integer only)
+- New: `W1` = 1 second, `W2.5` = 2.5 seconds (decimal support)
 
-Regenerate all QR codes!
+Regenerate all QR codes! Old integer-only QR codes will still work (backward compatible).
 
 ---
 
 **Format:** `{n}[R|B]S{startPos}[W{sec}|A{actionId}]*`  
-**Wait Format:** Integer seconds only (rounded)  
+**Wait Format:** Decimal seconds (0.1-30s, tenths precision)  
 **Typical Size:** 10-35 bytes  
-**Max Actions:** 30-48
+**Max Actions:** 25-48 depending on wait times

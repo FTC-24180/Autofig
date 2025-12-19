@@ -53,13 +53,13 @@ export function removeStorageItem(key) {
  * Storage keys used throughout the app
  */
 export const STORAGE_KEYS = {
-  MATCHES: 'ftc-autoconfig-matches',
-  CURRENT_MATCH: 'ftc-autoconfig-current-match',
-  PRESETS: 'ftc-autoconfig-presets',
-  ACTION_GROUPS: 'ftc-autoconfig-action-groups',
-  ACTIONS_INITIALIZED: 'ftc-autoconfig-actions-initialized',
-  START_POSITIONS: 'ftc-autoconfig-start-positions',
-  THEME_PREFERENCE: 'autoconfig-theme-preference',
-  UNITS_PREFERENCE: 'autoconfig-units-preference',
-  ANGLE_UNITS_PREFERENCE: 'autoconfig-angle-units-preference',
+  MATCHES: 'ftc-autofig-matches',
+  CURRENT_MATCH: 'ftc-autofig-current-match',
+  PRESETS: 'ftc-autofig-presets',
+  ACTION_GROUPS: 'ftc-autofig-action-groups',
+  ACTIONS_INITIALIZED: 'ftc-autofig-actions-initialized',
+  START_POSITIONS: 'ftc-autofig-start-positions',
+  THEME_PREFERENCE: 'autofig-theme-preference',
+  UNITS_PREFERENCE: 'autofig-units-preference',
+  ANGLE_UNITS_PREFERENCE: 'autofig-angle-units-preference',
 };

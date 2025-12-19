@@ -11,7 +11,7 @@ export function WelcomeScreen({
         <div className="flex items-center justify-center px-3 py-2.5">
           <div className="text-center">
             <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">
-              FTC AutoConfig
+              FTC Autofig
             </h1>
             <p className="text-xs text-indigo-600 dark:text-indigo-300 leading-none">
               Autonomous Match Configuration
@@ -30,7 +30,7 @@ export function WelcomeScreen({
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-                Welcome to FTC AutoConfig
+                Welcome to FTC Autofig
               </h2>
               <p className="text-gray-600 dark:text-gray-300">
                 Configure your autonomous routines for FTC matches

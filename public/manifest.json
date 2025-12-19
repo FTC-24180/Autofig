@@ -1,6 +1,6 @@
 {
-  "name": "FTC AutoConfig - Autonomous Configuration Builder",
-  "short_name": "FTC AutoConfig",
+  "name": "FTC Autofig - Autonomous Configuration Builder",
+  "short_name": "FTC Autofig",
   "description": "Mobile-first configuration builder for FTC autonomous routines with QR code generation",
   "start_url": "/",
   "scope": "/",

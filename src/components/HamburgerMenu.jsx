@@ -478,7 +478,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
             {showHelp && (
               <div className="space-y-6">
                 <div className="text-center pb-4 border-b border-gray-200 dark:border-slate-800">
-                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">FTC AutoConfig</h3>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">FTC Autofig</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                     Version {VERSION} • PWA-Enabled
                   </p>
@@ -486,7 +486,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                     Made with ❤️ by FTC Team 24180
                   </p>
                   <a
-                    href="https://github.com/FTC-24180/AutoConfig"
+                    href="https://github.com/FTC-24180/Autofig"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition"

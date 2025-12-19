@@ -1,10 +1,10 @@
-# FTC AutoConfig
+# FTC Autofig
 
 A Progressive Web App (PWA) for configuring FTC autonomous routines. Built with React and TailwindCSS, this mobile-first application helps teams quickly create, manage, and deploy autonomous configurations for multiple matches.
 
 ## Current Version: 2.6.0
 
-**Live App**: https://AutoConfig.bluebananas.org
+**Live App**: https://Autofig.bluebananas.org
 
 ---
 
@@ -67,7 +67,7 @@ The app automatically deploys to GitHub Pages when changes are pushed to the `ma
    - Workflow runs automatically (`.github/workflows/deploy.yml`)
    - Builds the app with `npm run build`
    - Deploys to `gh-pages` branch
-   - Live at: `https://ftc-24180.github.io/AutoConfig/`
+   - Live at: `https://ftc-24180.github.io/Autofig/`
 
 3. **Check Deployment**:
    - View progress: GitHub ? Actions tab
@@ -317,7 +317,7 @@ Customize preset starting positions:
 
 ## Development
 
-This section is for developers working on the AutoConfig codebase.
+This section is for developers working on the Autofig codebase.
 
 ### Prerequisites
 
@@ -331,7 +331,7 @@ This section is for developers working on the AutoConfig codebase.
 1. **Open the Solution**:
    - Open Visual Studio
    - File ? Open ? Project/Solution
-   - Select `AutoConfig.sln` (if present) or open the folder directly
+   - Select `Autofig.sln` (if present) or open the folder directly
 
 2. **Install Dependencies**:
    - Open the integrated terminal (View ? Terminal)
@@ -350,8 +350,8 @@ This section is for developers working on the AutoConfig codebase.
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/FTC-24180/AutoConfig.git
-   cd AutoConfig
+   git clone https://github.com/FTC-24180/Autofig.git
+   cd Autofig
    ```
 
 2. **Install Dependencies**:
@@ -382,7 +382,7 @@ This section is for developers working on the AutoConfig codebase.
 ### Project Structure
 
 ```
-AutoConfig/
+Autofig/
 ??? public/                      # Static assets
 ?   ??? manifest.json           # PWA manifest
 ?   ??? sw.js                   # Service worker
@@ -510,7 +510,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 ## Support
 
 For issues or questions:
-- Create an issue on GitHub: https://github.com/FTC-24180/AutoConfig/issues
+- Create an issue on GitHub: https://github.com/FTC-24180/Autofig/issues
 - Contact the programming team lead
 - Check the `examples/` directory for OpMode integration help
 

@@ -27,7 +27,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="FTC AutoConfig" />
+    <meta name="apple-mobile-web-app-title" content="FTC Autofig" />
     
     <!-- Disable iOS telephone number detection -->
     <meta name="format-detection" content="telephone=no" />
@@ -43,7 +43,7 @@
     <script>
       (() => {
         try {
-          const storageKey = 'autoconfig-theme-preference';
+          const storageKey = 'autofig-theme-preference';
           const storedPreference = localStorage.getItem(storageKey);
           const userPreference = storedPreference === 'light' || storedPreference === 'dark' ? storedPreference : null;
           const mediaQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
@@ -57,7 +57,7 @@
       })();
     </script>
     
-    <title>FTC AutoConfig - Autonomous Configuration Builder</title>
+    <title>FTC Autofig - Autonomous Configuration Builder</title>
   </head>
   <body>
     <div id="root"></div>

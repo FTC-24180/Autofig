@@ -48,7 +48,7 @@ export function MainWizardView({
               FTC AutoConfig
             </h1>
             <p className="text-xs text-indigo-600 dark:text-indigo-300 leading-none flex items-center justify-center gap-1">
-              Match #{currentMatch?.matchNumber || '?'} •{' '}
+                          Match #{currentMatch?.matchNumber || '?'} {'\u2022'}{' '}
               <AllianceIcon 
                 alliance={currentMatch?.alliance} 
                 className={`w-3 h-3 ${currentMatch?.alliance === 'red' ? 'text-red-600' : 'text-blue-600'}`}

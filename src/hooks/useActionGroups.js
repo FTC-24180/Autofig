@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getStorageItem, setStorageItem, STORAGE_KEYS } from '../utils/storageUtils';
 
 // Default action groups with A{n} keys
@@ -6,9 +6,7 @@ const DEFAULT_ACTION_GROUPS = {
   actions: {
     label: 'Actions',
     icon: '\u26A1',
-    actions: [
-
-    ]
+    actions: []
   },
   wait: {
     label: 'Wait',
@@ -70,6 +68,8 @@ export function useActionGroups() {
     return DEFAULT_ACTION_GROUPS;
   });
 
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     setStorageItem(STORAGE_KEYS.ACTION_GROUPS, actionGroups);
   }, [actionGroups]);
@@ -104,66 +104,92 @@ export function useActionGroups() {
   };
 
   const addActionToGroup = (groupKey, actionData) => {
-    setActionGroups(prev => {
-      const group = prev[groupKey];
-      if (!group) return prev;
-      
-      // For actions group, auto-assign next A{n} key if not provided or invalid
-      let actionId = actionData.id;
-      if (groupKey === 'actions') {
-        if (!actionId || !actionId.match(/^A\d+$/)) {
-          actionId = getNextActionKey();
-        }
+    const group = actionGroups[groupKey];
+    if (!group) return false;
+    
+    // For actions group, auto-assign next A{n} key if not provided or invalid
+    let actionId = actionData.id;
+    if (groupKey === 'actions') {
+      if (!actionId || !actionId.match(/^A\d+$/)) {
+        actionId = getNextActionKey();
       }
-      
-      const newAction = {
-        id: actionId,
-        label: actionData.label || actionId,
-        ...(actionData.config && { config: actionData.config })
-      };
-      
-      return {
-        ...prev,
-        [groupKey]: {
-          ...group,
-          actions: [...group.actions, newAction]
-        }
-      };
-    });
+    }
+    
+    // Use provided label or generate default
+    const label = actionData.label || `Action ${actionId}`;
+    
+    const newAction = {
+      id: actionId,
+      label: label,
+      ...(actionData.config && { config: actionData.config })
+    };
+    
+    setActionGroups(prev => ({
+      ...prev,
+      [groupKey]: {
+        ...group,
+        actions: [...group.actions, newAction]
+      }
+    }));
+    
+    return true;
   };
 
   const updateActionInGroup = (groupKey, actionIndex, updates) => {
-    setActionGroups(prev => {
-      const group = prev[groupKey];
-      if (!group) return prev;
-      
-      const newActions = [...group.actions];
-      newActions[actionIndex] = { ...newActions[actionIndex], ...updates };
-      
-      return {
-        ...prev,
-        [groupKey]: {
-          ...group,
-          actions: newActions
+    const group = actionGroups[groupKey];
+    if (!group) return false;
+    
+    // Always allow the update to go through for typing
+    const newActions = [...group.actions];
+    newActions[actionIndex] = { ...newActions[actionIndex], ...updates };
+    
+    setActionGroups(prev => ({
+      ...prev,
+      [groupKey]: {
+        ...group,
+        actions: newActions
+      }
+    }));
+    
+    // Check for duplicates after update for error display only
+    if (updates.label !== undefined) {
+      const trimmedLabel = updates.label.trim();
+      if (trimmedLabel.length > 0) {
+        const isDuplicateLabel = group.actions.some(
+          (action, idx) => 
+            idx !== actionIndex && 
+            action.label.trim().toLowerCase() === trimmedLabel.toLowerCase()
+        );
+        
+        if (isDuplicateLabel) {
+          setError({ index: actionIndex, message: `An action with the label "${trimmedLabel}" already exists. Please use a unique label.` });
+        } else {
+          setError(null);
         }
-      };
-    });
+      }
+    }
+    
+    return true;
   };
 
   const deleteActionInGroup = (groupKey, actionIndex) => {
-    setActionGroups(prev => {
-      const group = prev[groupKey];
-      if (!group) return prev;
-      
-      return {
-        ...prev,
-        [groupKey]: {
-          ...group,
-          actions: group.actions.filter((_, i) => i !== actionIndex)
-        }
-      };
-    });
+    setError(null);
+    
+    const group = actionGroups[groupKey];
+    if (!group) return false;
+    
+    setActionGroups(prev => ({
+      ...prev,
+      [groupKey]: {
+        ...group,
+        actions: group.actions.filter((_, i) => i !== actionIndex)
+      }
+    }));
+    
+    return true;
   };
+
+  const clearError = () => setError(null);
 
   // Keep other group operations as no-ops (groups are fixed to 'actions' and 'wait')
   const addCustomGroup = () => {};
@@ -178,6 +204,9 @@ export function useActionGroups() {
     addCustomGroup,
     renameGroup,
     deleteGroup,
-    exportConfig: () => {}
+    exportConfig: () => {},
+    getNextActionKey,
+    error,
+    clearError
   };
 }

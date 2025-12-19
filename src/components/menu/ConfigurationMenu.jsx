@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import { ActionsConfigContent } from '../config/ActionsConfigContent';
 import { StartPositionsConfigContent } from '../config/StartPositionsConfigContent';
 
@@ -20,21 +21,57 @@ export function ConfigurationMenu({
   onAddActionToGroup,
   onUpdateActionInGroup,
   onDeleteActionInGroup,
+  getNextActionKey,
+  actionsError,
+  clearActionsError,
   // Start positions config
   startPositions,
   onAddStartPosition,
   onUpdateStartPosition,
-  onDeleteStartPosition
+  onDeleteStartPosition,
+  positionsError,
+  clearPositionsError,
+  // Form state
+  showAddActionForm,
+  setShowAddActionForm
 }) {
+  const contentRef = useRef(null);
+
+  // Click outside handler for add form
+  useEffect(() => {
+    if (!showAddActionForm) return;
+
+    const handleClickOutside = (e) => {
+      // Check if click is outside the add form but inside the menu
+      if (contentRef.current && contentRef.current.contains(e.target)) {
+        // Check if the click target is not part of the add form
+        const isInsideAddForm = e.target.closest('.add-action-form-panel');
+        if (!isInsideAddForm) {
+          setShowAddActionForm(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showAddActionForm, setShowAddActionForm]);
+
   // If showing actions config
   if (showActionsConfig) {
     return (
-      <ActionsConfigContent
-        actionGroups={actionGroups}
-        onAddActionToGroup={onAddActionToGroup}
-        onUpdateActionInGroup={onUpdateActionInGroup}
-        onDeleteActionInGroup={onDeleteActionInGroup}
-      />
+      <div ref={contentRef}>
+        <ActionsConfigContent
+          actionGroups={actionGroups}
+          onAddActionToGroup={onAddActionToGroup}
+          onUpdateActionInGroup={onUpdateActionInGroup}
+          onDeleteActionInGroup={onDeleteActionInGroup}
+          getNextActionKey={getNextActionKey}
+          error={actionsError}
+          clearError={clearActionsError}
+          showAddForm={showAddActionForm}
+          setShowAddForm={setShowAddActionForm}
+        />
+      </div>
     );
   }
 
@@ -47,13 +84,15 @@ export function ConfigurationMenu({
         onUpdateStartPosition={onUpdateStartPosition}
         onDeleteStartPosition={onDeleteStartPosition}
         onExportConfig={onExportConfig}
+        error={positionsError}
+        clearError={clearPositionsError}
       />
     );
   }
 
   // Main configuration menu
   return (
-    <div className="space-y-2">
+    <div ref={contentRef} className="space-y-2">
       {/* Configure Actions */}
       <button
         onClick={onShowActionsConfig}

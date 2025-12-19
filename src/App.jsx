@@ -152,11 +152,16 @@ function App() {
     onUpdateActionInGroup: actionGroupsHook.updateActionInGroup,
     onDeleteActionInGroup: actionGroupsHook.deleteActionInGroup,
     onAddCustomGroup: actionGroupsHook.addCustomGroup,
+    getNextActionKey: actionGroupsHook.getNextActionKey,
+    actionsError: actionGroupsHook.error,
+    clearActionsError: actionGroupsHook.clearError,
     onExportConfig: exportConfig,
     startPositions: startPositionsHook.startPositions,
     onAddStartPosition: startPositionsHook.addStartPosition,
     onUpdateStartPosition: startPositionsHook.updateStartPosition,
-    onDeleteStartPosition: startPositionsHook.deleteStartPosition
+    onDeleteStartPosition: startPositionsHook.deleteStartPosition,
+    positionsError: startPositionsHook.error,
+    clearPositionsError: startPositionsHook.clearError
   };
 
   // Show welcome screen if no matches exist

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { AddItemForm } from '../common/AddItemForm';
 
 export function StartPositionsConfigContent({
@@ -5,13 +6,34 @@ export function StartPositionsConfigContent({
   onAddStartPosition,
   onUpdateStartPosition,
   onDeleteStartPosition,
-  onExportConfig
+  onExportConfig,
+  error,
+  clearError
 }) {
+  // Track previous valid labels for each position
+  const previousLabelsRef = useRef({});
+
   // Add custom position (S0) to the display list
   const allPositions = [
     { key: 'S0', label: 'Custom', isSystem: true },
     ...startPositions
   ];
+
+  const handleLabelFocus = (actualIdx, currentLabel) => {
+    // Store the current valid label when user starts editing
+    previousLabelsRef.current[actualIdx] = currentLabel;
+  };
+
+  const handleLabelBlur = (actualIdx, currentLabel) => {
+    // If there's an error on this field, revert to previous valid value
+    if (error?.index === actualIdx) {
+      const previousLabel = previousLabelsRef.current[actualIdx];
+      if (previousLabel !== undefined) {
+        onUpdateStartPosition(actualIdx, { label: previousLabel });
+      }
+      clearError();
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -50,12 +72,28 @@ export function StartPositionsConfigContent({
                         {pos.label}
                       </div>
                     ) : (
-                      <input
-                        value={pos.label}
-                        onChange={(e) => onUpdateStartPosition(actualIdx, { label: e.target.value })}
-                        className="flex-1 px-2 py-1 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-gray-100 rounded text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="Display label (app use only)"
-                      />
+                      <div className="flex-1">
+                        <input
+                          value={pos.label}
+                          onFocus={() => handleLabelFocus(actualIdx, pos.label)}
+                          onChange={(e) => onUpdateStartPosition(actualIdx, { label: e.target.value })}
+                          onBlur={() => handleLabelBlur(actualIdx, pos.label)}
+                          className={`w-full px-2 py-1 border ${
+                            error?.index === actualIdx ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-slate-600'
+                          } bg-white dark:bg-slate-900 dark:text-gray-100 rounded text-xs ${
+                            error?.index === actualIdx ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-indigo-500 focus:border-indigo-500'
+                          } focus:ring-2`}
+                          placeholder="Display label (app use only)"
+                        />
+                        {error?.index === actualIdx && (
+                          <div className="flex items-start gap-1 mt-1 text-xs text-red-600 dark:text-red-400">
+                            <svg className="w-3 h-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>{error.message}</span>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

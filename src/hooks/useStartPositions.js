@@ -42,6 +42,8 @@ export function useStartPositions() {
     return stored;
   });
 
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     setStorageItem(STORAGE_KEYS.START_POSITIONS, startPositions);
   }, [startPositions]);
@@ -72,6 +74,19 @@ export function useStartPositions() {
   };
 
   const addStartPosition = (label) => {
+    setError(null);
+    
+    // Check for duplicate label - only exact match after trimming
+    const trimmedLabel = (label || '').trim();
+    const isDuplicateLabel = startPositions.some(
+      pos => pos.label.trim().toLowerCase() === trimmedLabel.toLowerCase()
+    );
+    
+    if (isDuplicateLabel && trimmedLabel.length > 0) {
+      setError(`A start position with the label "${trimmedLabel}" already exists. Please use a unique label.`);
+      return false;
+    }
+    
     const nextKey = getNextKey();
     const nextNumber = parseInt(nextKey.substring(1));
     
@@ -81,9 +96,11 @@ export function useStartPositions() {
       label: label || `Start Position ${nextNumber}`
     };
     setStartPositions(prev => [...prev, newPosition]);
+    return true;
   };
 
   const updateStartPosition = (index, updates) => {
+    // Always allow the update to go through for typing
     setStartPositions(prev => {
       const positions = [...prev];
       // Only allow updating the label, not the key
@@ -93,11 +110,35 @@ export function useStartPositions() {
       };
       return positions;
     });
+    
+    // Check for duplicates after update for error display only
+    if (updates.label !== undefined) {
+      const trimmedLabel = updates.label.trim();
+      if (trimmedLabel.length > 0) {
+        const isDuplicateLabel = startPositions.some(
+          (pos, idx) => 
+            idx !== index && 
+            pos.label.trim().toLowerCase() === trimmedLabel.toLowerCase()
+        );
+        
+        if (isDuplicateLabel) {
+          setError({ index, message: `A start position with the label "${trimmedLabel}" already exists. Please use a unique label.` });
+        } else {
+          setError(null);
+        }
+      }
+    }
+    
+    return true;
   };
 
   const deleteStartPosition = (index) => {
+    setError(null);
     setStartPositions(prev => prev.filter((_, i) => i !== index));
+    return true;
   };
+
+  const clearError = () => setError(null);
 
   /**
    * Sort start positions by key (S1, S2, S3, etc.)
@@ -112,6 +153,8 @@ export function useStartPositions() {
     startPositions: sortedStartPositions,
     addStartPosition,
     updateStartPosition,
-    deleteStartPosition
+    deleteStartPosition,
+    error,
+    clearError
   };
 }

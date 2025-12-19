@@ -35,11 +35,16 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
   onUpdateActionInGroup,
   onDeleteActionInGroup,
   onAddCustomGroup,
+  getNextActionKey,
+  actionsError,
+  clearActionsError,
   onExportConfig,
   startPositions,
   onAddStartPosition,
   onUpdateStartPosition,
-  onDeleteStartPosition
+  onDeleteStartPosition,
+  positionsError,
+  clearPositionsError
 }, ref) {
   const [isOpen, setIsOpen] = useState(false);
   const [showMatches, setShowMatches] = useState(false);
@@ -57,6 +62,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
   const [showDeleteMatchModal, setShowDeleteMatchModal] = useState(false);
   const [matchToDelete, setMatchToDelete] = useState(null);
   const [previewConfig, setPreviewConfig] = useState(null);
+  const [showAddActionForm, setShowAddActionForm] = useState(false);
   const [clearDataOptions, setClearDataOptions] = useState({
     matches: true,
     templates: false,
@@ -88,6 +94,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
     setShowTemplates(false);
     setShowSettings(false);
     setShowHelp(false);
+    setShowAddActionForm(false); // Close add form when menu closes
   };
 
   const goBack = () => {
@@ -235,7 +242,14 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
 
       {/* Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={closeMenu} />
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => {
+          // Close add form if open, otherwise close entire menu
+          if (showAddActionForm) {
+            setShowAddActionForm(false);
+          } else {
+            closeMenu();
+          }
+        }} />
       )}
 
       {/* Menu Panel */}
@@ -263,7 +277,19 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
           </div>
 
           {/* Menu Content */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div 
+            className="flex-1 overflow-y-auto p-4"
+            onClick={(e) => {
+              // Close add form when clicking on empty menu background
+              if (showAddActionForm) {
+                // Check if click is not inside the add form
+                const isInsideAddForm = e.target.closest('.add-action-form-panel');
+                if (!isInsideAddForm) {
+                  setShowAddActionForm(false);
+                }
+              }
+            }}
+          >
             {/* Main Menu */}
             {!showMatches && !showConfig && !showActionsConfig && !showPositionsConfig && !showTemplates && !showSettings && !showHelp && (
               <div className="space-y-2">
@@ -381,10 +407,17 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                 onAddActionToGroup={onAddActionToGroup}
                 onUpdateActionInGroup={onUpdateActionInGroup}
                 onDeleteActionInGroup={onDeleteActionInGroup}
+                getNextActionKey={getNextActionKey}
+                actionsError={actionsError}
+                clearActionsError={clearActionsError}
                 startPositions={startPositions}
                 onAddStartPosition={onAddStartPosition}
                 onUpdateStartPosition={onUpdateStartPosition}
                 onDeleteStartPosition={onDeleteStartPosition}
+                positionsError={positionsError}
+                clearPositionsError={clearPositionsError}
+                showAddActionForm={showAddActionForm}
+                setShowAddActionForm={setShowAddActionForm}
               />
             )}
 

@@ -101,7 +101,6 @@ export function MainWizardView({
           />
         </WizardContainer>
       </div>
-
       {/* Compact Bottom Navigation */}
       <WizardNavigation
         currentStep={currentStep}

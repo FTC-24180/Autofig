@@ -16,9 +16,9 @@ jobs:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # Use PAT if GITHUB_TOKEN doesn't have org permissions
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
           release-type: node
-          package-name: ftc-autofig
           
       # Output the release information for debugging
       - name: Show Release Info

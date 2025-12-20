@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/FTC-24180/Autofig/compare/v1.0.0...v1.0.1) (2025-12-20)
+
+
+### Bug Fixes
+
+* reorganize deployment docs from README to CONTRIBUTING ([ac63ba2](https://github.com/FTC-24180/Autofig/commit/ac63ba200ca80846cab5f784d707365b2736172f))
+
 ## 1.0.0 (2025-12-20)
 
 

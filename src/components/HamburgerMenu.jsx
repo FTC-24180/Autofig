@@ -87,6 +87,16 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
       setShowMatches(false);
       setShowSettings(false);
       setShowHelp(false);
+    },
+    openToActionsConfig: () => {
+      setIsOpen(true);
+      setShowConfig(false);
+      setShowActionsConfig(true);
+      setShowPositionsConfig(false);
+      setShowTemplates(false);
+      setShowMatches(false);
+      setShowSettings(false);
+      setShowHelp(false);
     }
   }));
 

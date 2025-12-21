@@ -2,6 +2,43 @@
 
 This project uses **Release Please** for semi-automated version management with **manual control**. Release Please creates pull requests with version bumps and changelogs, which you review and merge when ready to release.
 
+## Why Release Please?
+
+### The Problem with Fully Automated Tools
+
+Tools like semantic-release deploy **immediately** on every push to main:
+- ? No review step before release
+- ? Can't combine multiple changes into one release
+- ? No control over timing
+- ? Difficult to hold back WIP features
+- ? Surprise releases from experimental commits
+
+### The Release Please Solution
+
+Release Please creates **Pull Requests** instead of immediate releases:
+- ? **Review before releasing**: See exactly what's changing
+- ? **Combine changes**: Multiple commits in one release
+- ? **Control timing**: Merge PR when YOU'RE ready
+- ? **Edit release notes**: Improve changelog before publishing
+- ? **Prevent accidents**: WIP commits don't trigger releases
+
+### What You Trade for Control
+
+To be fair, here's what you give up:
+
+**Slightly More Friction**:
+- Need to merge a PR (vs automatic)
+- But this is also a **feature** - it prevents accidents!
+
+**Two-Step Process**:
+- Push commits ? Review PR ? Merge PR
+- vs semantic-release: Push commits ? Done
+- But you get **control** in exchange
+
+**Need to Remember to Merge**:
+- Release PRs can accumulate if forgotten
+- But this is usually **desired** (combine changes)
+
 ## How It Works
 
 1. **You make commits** with conventional commit messages
@@ -10,15 +47,6 @@ This project uses **Release Please** for semi-automated version management with 
 4. **You review the PR** and merge it when ready to release
 5. **On merge**, a GitHub Release is created and deployment happens
 6. **App displays the version** in the Help & Info menu
-
-## Key Advantage: Manual Control
-
-Unlike fully automated tools, Release Please gives you control:
-- ? Review version changes before they go live
-- ? Combine multiple changes into one release
-- ? Add manual changelog edits if needed
-- ? Time your releases strategically
-- ? Prevent accidental releases from WIP commits
 
 ## Commit Message Format
 
@@ -110,6 +138,66 @@ supported. Users must export and re-import matches."
      - Git tag creation (v2.7.0)
      - Deployment to GitHub Pages
 
+### Real-World Examples
+
+#### Example 1: Feature Development
+
+**Monday - Start new feature**:
+```bash
+git commit -m "feat: add user authentication UI"
+git push
+```
+? Release Please creates PR for v2.7.0
+
+**Tuesday - Continue development**:
+```bash
+git commit -m "feat: add login backend"
+git push
+```
+? Same PR updated to include both commits
+
+**Wednesday - Bug fix**:
+```bash
+git commit -m "fix: resolve login validation"
+git push
+```
+? PR still at v2.7.0, now includes 3 commits
+
+**Thursday - Testing complete, ready to release**:
+? Merge the PR, all 3 changes release together as v2.7.0
+
+#### Example 2: Emergency Hotfix
+
+**Production issue discovered**:
+```bash
+git commit -m "fix: patch security vulnerability"
+git push
+```
+? Release Please creates/updates PR
+
+**Immediate action**:
+? Review PR quickly, merge immediately
+? Deployment starts within minutes
+
+#### Example 3: Holding Back Experimental Features
+
+**Working on major refactor**:
+```bash
+git commit -m "feat: refactor storage system (WIP)"
+git push
+```
+? Release Please creates PR for v3.0.0 (breaking change)
+
+**Continue experimenting**:
+```bash
+git commit -m "feat: add migration tools"
+git push
+```
+? PR updated, but you DON'T merge it yet
+
+**Weeks later, when ready**:
+? Merge the PR to finally release v3.0.0
+
 ### Accumulating Changes
 
 Release Please is smart about multiple commits:
@@ -143,6 +231,39 @@ git push
 # Release PR updates but you don't merge it yet
 # Deploy when ready by merging the PR
 ```
+
+## Team Workflow
+
+### For Individual Developers
+
+```bash
+# 1. Work on features
+git commit -m "feat: implement feature"
+git push
+
+# 2. Check GitHub PRs periodically
+# 3. When ready to release, review and merge the PR
+```
+
+### For Teams
+
+**Developer A** (Monday):
+```bash
+git commit -m "feat: add dashboard"
+git push
+```
+
+**Developer B** (Tuesday):
+```bash
+git commit -m "feat: add reporting"
+git push
+```
+
+**Team Lead** (Friday):
+- Reviews the release PR
+- Checks all commits from the week
+- Edits changelog if needed
+- Merges when ready for deployment
 
 ## What Gets Updated Automatically
 
@@ -206,13 +327,33 @@ git push
 # Merge immediately without waiting
 ```
 
+## When to Use What?
+
+### Use Release Please When:
+- ? You want control over release timing
+- ? You want to review changes before releasing
+- ? You want to combine multiple commits into releases
+- ? You want to edit release notes before publishing
+- ? You have a testing/QA process before production
+- ? **This is YOUR case!**
+
+### Use Semantic Release When:
+- Instant releases are acceptable
+- No review process needed
+- Every commit should deploy immediately
+- Fully automated CI/CD is required
+
+### Use Manual Releases When:
+- Very irregular release schedule
+- Complex release processes
+- Non-semantic versioning needed
+
 ## Configuration
 
 Release Please is configured in `.github/workflows/release-please.yml`:
 
 ```yaml
 release-type: node        # For Node.js/npm projects
-package-name: ftc-autofig # Your package name
 ```
 
 Advanced configuration can be added via `release-please-config.json` if needed.
@@ -258,6 +399,26 @@ To commit without triggering Release Please:
 git commit -m "chore: update comments [skip ci]"
 ```
 
+## Common Questions
+
+**Q: What if I push non-releasable code?**  
+A: Don't merge the release PR. Fix the code, push more commits, then merge when ready.
+
+**Q: Can I skip a release?**  
+A: Yes! Close the PR without merging. Future commits will create a new PR.
+
+**Q: How do I release immediately?**  
+A: Merge the release PR right away. Still faster than manual!
+
+**Q: What if multiple people push commits?**  
+A: They all go into the same release PR. Perfect for team collaboration.
+
+**Q: Can I edit the version number?**  
+A: You can edit `package.json` in the release PR if needed, but it's usually automatic.
+
+**Q: What about hotfixes to old versions?**  
+A: Create a branch from the old tag, commit, and manually release. (Advanced)
+
 ## Local Development
 
 During local development (`npm run dev`), the app uses the fallback version defined in `public/version.js`:
@@ -292,6 +453,9 @@ The actual version is only injected during the CI/CD build process.
 - Accumulate related changes into one release
 - Edit CHANGELOG.md in the PR if needed
 - Merge release PRs when ready to go live
+- Let changes accumulate - don't merge PRs immediately
+- Check GitHub PRs periodically
+- Merge strategically - time releases with your schedule
 
 ### ? DON'T
 
@@ -300,17 +464,21 @@ The actual version is only injected during the CI/CD build process.
 - Merge release PRs without reviewing
 - Use vague commit messages
 - Manually edit `public/version.js` (it's auto-generated)
+- Merge release PRs immediately - let changes build up
+- Skip reviews - always check the PR before merging
 
-## Comparison: Release Please vs Semantic Release
+## Comparison: Release Please vs Semantic Release vs Manual
 
-| Feature | Release Please | Semantic Release |
-|---------|---------------|------------------|
-| **Control** | ? Manual (PR-based) | ? Automatic |
-| **Review** | ? Review before release | ? No review |
-| **Timing** | ? Release when ready | ? Releases immediately |
-| **Accumulation** | ? Combine changes | ? Releases per push |
-| **Emergency** | ? Can merge PR quickly | ? Immediate |
-| **Rollback** | ? Don't merge PR | ? Need manual revert |
+| Feature | Release Please | Semantic Release | Manual |
+|---------|---------------|------------------|---------|
+| **Control** | ? Full (PR-based) | ? None (automatic) | ? Full |
+| **Review** | ? Before release | ? No review | ? Manual review |
+| **Timing** | ? When you merge | ? Immediate | ? Manual |
+| **Versioning** | ? Automatic | ? Automatic | ? Manual |
+| **Changelog** | ? Auto-generated | ? Auto-generated | ? Manual |
+| **Accumulation** | ? Yes | ? No | ? No |
+| **Edit Notes** | ? In PR | ? After release | ? Manual |
+| **Rollback** | ? Don't merge | ? Manual revert | ? Manual |
 
 ## Resources
 

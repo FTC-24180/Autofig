@@ -74,7 +74,7 @@ export function useWizardActions(matchesHook) {
   const canGoNext = () => {
     if (!currentMatch) return false;
     switch (currentStep) {
-      case 0: return currentMatch.matchNumber > 0 && currentMatch.alliance !== '';
+      case 0: return currentMatch.matchNumber >= 0 && currentMatch.alliance !== '';
       case 1: return currentMatch.startPosition?.type !== '';
       case 2: return true; // Actions are optional but recommended
       case 3: return true;

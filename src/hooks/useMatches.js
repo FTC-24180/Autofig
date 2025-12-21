@@ -219,7 +219,7 @@ export function useMatches() {
     // Find the highest match number (excluding template match 0)
     const regularMatches = matches.filter(m => m.matchNumber > 0);
     const nextMatchNumber = regularMatches.length > 0 
-      ? Math.max(...regularMatches.map(m => m.matchNumber), 0) + 1 
+      ? Math.max(...regularMatches.map(m => m.matchNumber)) + 1 
       : 1;
 
     const newMatch = {

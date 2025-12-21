@@ -80,11 +80,10 @@ function App() {
     }
   }, [updateAvailable]);
 
-  // Check if default match template exists
+  // Check if default match template exists (match 0)
   useEffect(() => {
     setHasDefaultTemplate(matchesHook.hasDefaultMatchTemplate());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
+  }, [matchesHook.matches]); // Update when matches change
 
   // Config management for action groups and start positions (NOT match data)
   const getTemplateConfig = () => ({

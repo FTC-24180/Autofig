@@ -315,7 +315,6 @@ Once deployed, users can install the app:
 ## Need Help?
 
 - **Versioning**: See [VERSIONING.md](VERSIONING.md)
-- **First release**: See [FIRST_RELEASE_CHECKLIST.md](FIRST_RELEASE_CHECKLIST.md)
 - **Full docs**: See [README.md](README.md)
 - **Issues**: Open an issue on GitHub
 

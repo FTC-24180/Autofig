@@ -18,9 +18,8 @@ Unlike fully automated tools, Release Please gives YOU control:
 1. **`.github/workflows/release-please.yml`** - Release Please workflow
 2. **`VERSIONING.md`** - Complete guide to Release Please
 3. **`CONTRIBUTING.md`** - Quick start guide for contributors
-4. **`FIRST_RELEASE_CHECKLIST.md`** - Step-by-step first release guide
-5. **`AUTOMATED_VERSIONING_SUMMARY.md`** - This file
-6. **`.gitmessage`** - Commit message template
+4. **`AUTOMATED_VERSIONING_SUMMARY.md`** - This file
+5. **`.gitmessage`** - Commit message template
 
 ## Files Modified
 
@@ -182,7 +181,6 @@ git push
 All comprehensive documentation is in:
 - **`VERSIONING.md`** - Complete guide with examples
 - **`CONTRIBUTING.md`** - Quick start for contributors
-- **`FIRST_RELEASE_CHECKLIST.md`** - Step-by-step first release
 - **`README.md`** - Updated deployment section
 
 ## Important Notes
@@ -206,10 +204,9 @@ All comprehensive documentation is in:
 ## Next Steps
 
 1. **Review the docs**: Read [VERSIONING.md](VERSIONING.md)
-2. **Follow the checklist**: Use [FIRST_RELEASE_CHECKLIST.md](FIRST_RELEASE_CHECKLIST.md)
-3. **Make a test commit**: Try `git commit -m "feat: test Release Please"`
-4. **Check for the PR**: Look in GitHub PRs for "chore(main): release X.X.X"
-5. **Review and merge**: When ready, merge the PR to trigger deployment
+2. **Make a test commit**: Try `git commit -m "feat: test Release Please"`
+3. **Check for the PR**: Look in GitHub PRs for "chore(main): release X.X.X"
+4. **Review and merge**: When ready, merge the PR to trigger deployment
 
 ## Troubleshooting
 

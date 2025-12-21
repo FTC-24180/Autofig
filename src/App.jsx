@@ -25,6 +25,9 @@ import { getThemeForAlliance } from './utils/themeUtils';
 function App() {
   // Modal state
   const [showUpdateNotification, setShowUpdateNotification] = useState(false);
+  
+  // Track default match template existence
+  const [hasDefaultTemplate, setHasDefaultTemplate] = useState(false);
 
   // Ref for HamburgerMenu
   const hamburgerMenuRef = useRef(null);
@@ -76,6 +79,11 @@ function App() {
       setShowUpdateNotification(true);
     }
   }, [updateAvailable]);
+
+  // Check if default match template exists
+  useEffect(() => {
+    setHasDefaultTemplate(matchesHook.hasDefaultMatchTemplate());
+  }, [matchesHook]);
 
   // Config management for action groups and start positions (NOT match data)
   const getTemplateConfig = () => ({
@@ -166,6 +174,7 @@ function App() {
     clearPositionsError: startPositionsHook.clearError,
     onSaveDefaultMatchTemplate: (matchId) => {
       if (matchesHook.saveDefaultMatchTemplate(matchId)) {
+        setHasDefaultTemplate(true);
         alert('✓ Default match template saved successfully');
       } else {
         alert('❌ Failed to save default match template');
@@ -174,7 +183,7 @@ function App() {
     onLoadDefaultMatchTemplate: () => {
       matchesHook.createMatchFromTemplate();
     },
-    hasDefaultMatchTemplate: matchesHook.hasDefaultMatchTemplate()
+    hasDefaultMatchTemplate: hasDefaultTemplate
   };
 
   // Show welcome screen if no matches exist

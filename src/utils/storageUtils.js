@@ -59,6 +59,7 @@ export const STORAGE_KEYS = {
   ACTION_GROUPS: 'ftc-autofig-action-groups',
   ACTIONS_INITIALIZED: 'ftc-autofig-actions-initialized',
   START_POSITIONS: 'ftc-autofig-start-positions',
+  DEFAULT_MATCH_TEMPLATE: 'ftc-autofig-default-match-template',
   THEME_PREFERENCE: 'autofig-theme-preference',
   UNITS_PREFERENCE: 'autofig-units-preference',
   ANGLE_UNITS_PREFERENCE: 'autofig-angle-units-preference',

@@ -10,6 +10,7 @@ export function ClearDataModal({ isOpen, onClose, onConfirm, options, onOptionsC
 
   const dataTypes = [
     { key: 'matches', label: 'Match Data', description: 'All configured matches and their actions' },
+    { key: 'defaultMatchTemplate', label: 'Default Match Template', description: 'Saved default configuration for quick match creation' },
     { key: 'templates', label: 'Saved Configurations', description: 'Templates for action groups and positions' },
     { key: 'actionGroups', label: 'Custom Actions', description: 'Custom action groups and types' },
     { key: 'startPositions', label: 'Start Positions', description: 'Custom start position presets' },

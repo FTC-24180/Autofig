@@ -46,7 +46,11 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
   onDeleteStartPosition,
   getNextStartKey,
   positionsError,
-  clearPositionsError
+  clearPositionsError,
+  // Props for default match template
+  onSaveDefaultMatchTemplate,
+  onLoadDefaultMatchTemplate,
+  hasDefaultMatchTemplate
 }, ref) {
   const [isOpen, setIsOpen] = useState(false);
   const [showMatches, setShowMatches] = useState(false);
@@ -68,6 +72,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
   const [showAddPositionForm, setShowAddPositionForm] = useState(false);
   const [clearDataOptions, setClearDataOptions] = useState({
     matches: true,
+    defaultMatchTemplate: false,
     templates: false,
     actionGroups: true,
     startPositions: true,
@@ -131,6 +136,7 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
   const handleClearAllData = () => {
     setClearDataOptions({
       matches: true,
+      defaultMatchTemplate: false,
       templates: false,
       actionGroups: true,
       startPositions: true,
@@ -153,6 +159,14 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
       if (clearDataOptions.matches) {
         removeStorageItem(STORAGE_KEYS.MATCHES);
         removeStorageItem(STORAGE_KEYS.CURRENT_MATCH);
+      }
+      
+      if (clearDataOptions.defaultMatchTemplate) {
+        // Delete the template match (match 0)
+        const templateMatch = matches.find(m => m.matchNumber === 0);
+        if (templateMatch) {
+          onDeleteMatch(templateMatch.id);
+        }
       }
       
       if (clearDataOptions.templates) {
@@ -404,6 +418,9 @@ export const HamburgerMenu = forwardRef(function HamburgerMenu({
                 onDuplicateMatch={onDuplicateMatch}
                 onDeleteMatch={handleDeleteMatch}
                 onExportJSON={onExportJSON}
+                onSaveDefaultTemplate={onSaveDefaultMatchTemplate}
+                onLoadDefaultTemplate={onLoadDefaultMatchTemplate}
+                hasDefaultTemplate={hasDefaultMatchTemplate}
                 onClose={closeMenu}
               />
             )}

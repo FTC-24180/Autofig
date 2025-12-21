@@ -5,6 +5,7 @@ export function ConfirmClearDataModal({ isOpen, onClose, onConfirm, options }) {
 
   const selectedItems = [];
   if (options?.matches) selectedItems.push('Match Data');
+  if (options?.defaultMatchTemplate) selectedItems.push('Default Match Template');
   if (options?.templates) selectedItems.push('Saved Configurations');
   if (options?.actionGroups) selectedItems.push('Custom Actions');
   if (options?.startPositions) selectedItems.push('Start Positions');

@@ -48,7 +48,16 @@ export function MainWizardView({
               FTC Autofig
             </h1>
             <p className="text-xs text-indigo-600 dark:text-indigo-300 leading-none flex items-center justify-center gap-1">
-                          Match #{currentMatch?.matchNumber || '?'} {'\u2022'}{' '}
+              {currentMatch?.matchNumber === 0 ? (
+                <>
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                  </svg>
+                  Default Template
+                </>
+              ) : (
+                `Match #${currentMatch?.matchNumber || '?'}`
+              )} {'\u2022'}{' '}
               <AllianceIcon 
                 alliance={currentMatch?.alliance} 
                 className={`w-3 h-3 ${currentMatch?.alliance === 'red' ? 'text-red-600' : 'text-blue-600'}`}
@@ -63,7 +72,7 @@ export function MainWizardView({
       <div className="flex-1 overflow-hidden">
         <WizardContainer currentStep={currentStep} onStepChange={onStepChange}>
           <Step1MatchSetup
-            matchNumber={currentMatch?.matchNumber || 1}
+            matchNumber={currentMatch?.matchNumber != null ? currentMatch.matchNumber : 1}
             partnerTeam={currentMatch?.partnerTeam || ''}
             alliance={currentMatch?.alliance || 'red'}
             onMatchNumberChange={(num) => updateCurrentMatch({ matchNumber: num })}

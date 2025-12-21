@@ -88,6 +88,7 @@ export function useMatches() {
     // Export in hierarchical JSON structure
     const config = {
       version: EXPORT_DATA_VERSION,
+      // eslint-disable-next-line no-unused-vars
       matches: matches.map(({ id, matchNumber, partnerTeam, alliance, startPosition, actions }) => ({
         match: {
           number: matchNumber,
@@ -97,6 +98,7 @@ export function useMatches() {
             auto: {
               startPosition: startPosition,
               // Keep type and label, omit internal UUID
+              // eslint-disable-next-line no-unused-vars
               actions: actions.map(({ id, ...rest }) => rest)
             }
           }
@@ -120,6 +122,7 @@ export function useMatches() {
           auto: {
             startPosition: match.startPosition,
             // Keep type and label, omit internal UUID
+            // eslint-disable-next-line no-unused-vars
             actions: match.actions.map(({ id, ...rest }) => rest)
           }
         }
@@ -158,6 +161,105 @@ export function useMatches() {
     }
   };
 
+  const saveMatchAsDefaultTemplate = (matchId) => {
+    const match = matches.find(m => m.id === matchId);
+    if (!match) return false;
+
+    // Check if template match (match 0) already exists
+    const existingTemplate = matches.find(m => m.matchNumber === 0);
+    
+    if (existingTemplate) {
+      // Update existing template match
+      setMatches(prev => prev.map(m => 
+        m.matchNumber === 0 
+          ? {
+              ...m,
+              alliance: match.alliance,
+              startPosition: match.startPosition,
+              actions: match.actions.map(action => ({
+                ...action,
+                id: crypto.randomUUID() // Generate new UUIDs for template
+              }))
+            }
+          : m
+      ));
+    } else {
+      // Create new template match with matchNumber 0
+      const templateMatch = {
+        id: crypto.randomUUID(),
+        matchNumber: 0,
+        partnerTeam: '',
+        alliance: match.alliance,
+        startPosition: match.startPosition,
+        actions: match.actions.map(action => ({
+          ...action,
+          id: crypto.randomUUID() // Generate new UUIDs for template
+        }))
+      };
+      
+      // Add template match at the beginning
+      setMatches(prev => [templateMatch, ...prev]);
+    }
+    
+    return true;
+  };
+
+  const hasDefaultMatchTemplate = () => {
+    return matches.some(m => m.matchNumber === 0);
+  };
+
+  const getDefaultMatchTemplate = () => {
+    return matches.find(m => m.matchNumber === 0) || null;
+  };
+
+  const createMatchFromTemplate = () => {
+    const template = getDefaultMatchTemplate();
+    if (!template) return null;
+
+    // Find the highest match number (excluding template match 0)
+    const regularMatches = matches.filter(m => m.matchNumber > 0);
+    const nextMatchNumber = regularMatches.length > 0 
+      ? Math.max(...regularMatches.map(m => m.matchNumber)) + 1 
+      : 1;
+
+    const newMatch = {
+      id: crypto.randomUUID(),
+      matchNumber: nextMatchNumber,
+      partnerTeam: '',
+      alliance: template.alliance,
+      startPosition: template.startPosition,
+      actions: template.actions.map(action => ({
+        ...action,
+        id: crypto.randomUUID() // Generate new internal UUID
+      }))
+    };
+    
+    setMatches(prev => [...prev, newMatch]);
+    setCurrentMatchId(newMatch.id);
+    return newMatch.id;
+  };
+
+  const deleteDefaultTemplate = () => {
+    const currentMatch = matches.find(m => m.id === currentMatchId);
+    const wasTemplate = currentMatch && currentMatch.matchNumber === 0;
+    
+    setMatches(prev => {
+      const filtered = prev.filter(m => m.matchNumber !== 0);
+      
+      // If current match was the template, select first regular match
+      if (wasTemplate) {
+        const regularMatches = filtered.filter(m => m.matchNumber > 0);
+        if (regularMatches.length > 0) {
+          setCurrentMatchId(regularMatches[0].id);
+        } else {
+          setCurrentMatchId(null);
+        }
+      }
+      
+      return filtered;
+    });
+  };
+
   return {
     matches,
     currentMatchId,
@@ -170,6 +272,11 @@ export function useMatches() {
     exportAllMatches,
     exportSingleMatch,
     importMatches,
+    saveMatchAsDefaultTemplate,
+    getDefaultMatchTemplate,
+    hasDefaultMatchTemplate,
+    createMatchFromTemplate,
+    deleteDefaultTemplate,
     EXPORT_VERSION: EXPORT_DATA_VERSION
   };
 }

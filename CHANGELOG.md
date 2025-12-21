@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/FTC-24180/Autofig/compare/v1.0.1...v1.0.2) (2025-12-21)
+
+
+### Bug Fixes
+
+* add required permissions for deploy workflow call ([0276b39](https://github.com/FTC-24180/Autofig/commit/0276b39b1dd4b12104aecb658bfd3165e4d7a8ea))
+* trigger deployment when Release Please creates release ([0b6694f](https://github.com/FTC-24180/Autofig/commit/0b6694f147b9e2b1ef27b9d7696343995a79b64d))
+
 ## [1.0.1](https://github.com/FTC-24180/Autofig/compare/v1.0.0...v1.0.1) (2025-12-20)
 
 

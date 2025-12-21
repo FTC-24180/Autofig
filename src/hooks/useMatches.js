@@ -166,6 +166,7 @@ export function useMatches() {
     if (!match) return false;
 
     const template = {
+      alliance: match.alliance,
       startPosition: match.startPosition,
       // eslint-disable-next-line no-unused-vars
       actions: match.actions.map(({ id, ...rest }) => rest) // Omit internal UUID
@@ -192,7 +193,7 @@ export function useMatches() {
       id: crypto.randomUUID(),
       matchNumber: matches.length + 1,
       partnerTeam: '',
-      alliance: 'red',
+      alliance: template.alliance || 'red',
       startPosition: template.startPosition,
       actions: template.actions.map(action => ({
         ...action,
@@ -214,7 +215,7 @@ export function useMatches() {
       id: 'template-match-0',
       matchNumber: 0,
       partnerTeam: '',
-      alliance: 'red',
+      alliance: template.alliance || 'red',
       startPosition: template.startPosition,
       actions: template.actions.map(action => ({
         ...action,
@@ -234,6 +235,7 @@ export function useMatches() {
     if (!match || !match.isTemplate) return false;
 
     const template = {
+      alliance: match.alliance,
       startPosition: match.startPosition,
       // eslint-disable-next-line no-unused-vars
       actions: match.actions.map(({ id, ...rest }) => rest) // Omit internal UUID

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/FTC-24180/Autofig/compare/v1.0.2...v1.0.3) (2025-12-21)
+
+
+### Bug Fixes
+
+* changed url ([01f1abd](https://github.com/FTC-24180/Autofig/commit/01f1abd092f39cdd4fc0e4861cfc9793d2f59a4d))
+
 ## [1.0.2](https://github.com/FTC-24180/Autofig/compare/v1.0.1...v1.0.2) (2025-12-21)
 
 

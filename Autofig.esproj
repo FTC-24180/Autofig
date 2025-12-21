@@ -16,6 +16,7 @@
     <Folder Include="scripts\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".github\workflows\pr-title-check.yml" />
     <None Include=".github\workflows\release-please.yml" />
   </ItemGroup>
 </Project>

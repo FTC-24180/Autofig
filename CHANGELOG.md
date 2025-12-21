@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/FTC-24180/Autofig/compare/v1.0.3...v1.0.4) (2025-12-21)
+
+
+### Bug Fixes
+
+* added pr-title-check ([c09cdc1](https://github.com/FTC-24180/Autofig/commit/c09cdc1c8521eeca89a3245821a583ab9a4e4d1f))
+
 ## [1.0.3](https://github.com/FTC-24180/Autofig/compare/v1.0.2...v1.0.3) (2025-12-21)
 
 

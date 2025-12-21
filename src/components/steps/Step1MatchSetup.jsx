@@ -17,7 +17,7 @@ export function Step1MatchSetup({ matchNumber, partnerTeam, alliance, onMatchNum
           </label>
           <input
             type="number"
-            min="0"
+            min={isDefaultTemplate ? "0" : "1"}
             value={matchNumber}
             onChange={(e) => onMatchNumberChange(parseInt(e.target.value) || 0)}
             className="w-full text-2xl font-bold px-4 py-4 border-2 border-gray-300 dark:border-slate-600 dark:bg-slate-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-h-[60px] touch-manipulation"

@@ -219,7 +219,7 @@ export function useMatches() {
     // Find the highest match number (excluding template match 0)
     const regularMatches = matches.filter(m => m.matchNumber > 0);
     const nextMatchNumber = regularMatches.length > 0 
-      ? Math.max(...regularMatches.map(m => m.matchNumber)) + 1 
+      ? Math.max(...regularMatches.map(m => m.matchNumber), 0) + 1 
       : 1;
 
     const newMatch = {
@@ -240,18 +240,24 @@ export function useMatches() {
   };
 
   const deleteDefaultTemplate = () => {
-    setMatches(prev => prev.filter(m => m.matchNumber !== 0));
-    
-    // If current match was the template, select first regular match
     const currentMatch = matches.find(m => m.id === currentMatchId);
-    if (currentMatch && currentMatch.matchNumber === 0) {
-      const regularMatches = matches.filter(m => m.matchNumber > 0);
-      if (regularMatches.length > 0) {
-        setCurrentMatchId(regularMatches[0].id);
-      } else {
-        setCurrentMatchId(null);
+    const wasTemplate = currentMatch && currentMatch.matchNumber === 0;
+    
+    setMatches(prev => {
+      const filtered = prev.filter(m => m.matchNumber !== 0);
+      
+      // If current match was the template, select first regular match
+      if (wasTemplate) {
+        const regularMatches = filtered.filter(m => m.matchNumber > 0);
+        if (regularMatches.length > 0) {
+          setCurrentMatchId(regularMatches[0].id);
+        } else {
+          setCurrentMatchId(null);
+        }
       }
-    }
+      
+      return filtered;
+    });
   };
 
   return {

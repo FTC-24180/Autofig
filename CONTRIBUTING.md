@@ -49,6 +49,30 @@ git commit -m "feat!: redesign storage system"
 git config commit.template .gitmessage
 ```
 
+#### Working with GitHub Copilot PRs
+
+When GitHub Copilot creates a PR for you:
+
+1. **Review the Copilot-generated PR** on GitHub
+2. **When merging, use semantic commit messages**:
+   - Click **"Squash and merge"** (recommended)
+   - Edit the commit title to use semantic format:
+     ```
+     feat: implement QR scanner improvements
+     ```
+3. **Merge to main** - this triggers Release Please
+4. **Check for Release Please PR** - appears as "chore(main): release X.X.X"
+
+**Example Merge Message:**
+```
+feat: add QR code validation feature
+
+Implement input validation, improve error messages,
+and add unit tests for validation logic.
+
+Co-authored-by: GitHub Copilot <copilot@github.com>
+```
+
 ### 3. Push Your Changes
 ```bash
 git push origin main

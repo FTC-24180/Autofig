@@ -1,0 +1,79 @@
+---
+# Repository settings for Autofig
+# This file configures branch protection rules and other repository settings
+# Managed via GitHub API or Probot Settings app
+
+repository:
+  # Repository settings
+  name: Autofig
+  # A Progressive Web App (PWA) for configuring FTC autonomous routines
+  description: A Progressive Web App (PWA) for configuring FTC autonomous
+  homepage: https://Autofig.bluebananas.org
+
+  # Repository features
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  has_downloads: true
+
+  # Default branch
+  default_branch: main
+
+  # Allow merge options
+  allow_squash_merge: true
+  allow_merge_commit: true
+  allow_rebase_merge: true
+
+  # Automatically delete head branches after merge
+  delete_branch_on_merge: true
+
+# Branch protection rules
+branches:
+  - name: main
+    # Require pull request reviews before merging
+    protection:
+      # Require pull request before merging
+      required_pull_request_reviews:
+        # Require at least 1 approving review
+        required_approving_review_count: 1
+        # Dismiss stale pull request approvals when new commits are pushed
+        dismiss_stale_reviews: true
+        # Require review from code owners
+        require_code_owner_reviews: false
+        # Allow specified actors to bypass pull request requirements
+        bypass_pull_request_allowances:
+          users: []
+          teams: []
+          apps: []
+
+      # Require status checks to pass before merging
+      required_status_checks:
+        # Require branches to be up to date before merging
+        strict: true
+        # List of status checks that must pass (empty means none required)
+        contexts: []
+
+      # Enforce all configured restrictions above for administrators
+      # This is the key setting that requires PR even for admins
+      enforce_admins: true
+
+      # Require linear history (no merge commits)
+      required_linear_history: false
+
+      # Allow force pushes
+      allow_force_pushes: false
+
+      # Allow deletions
+      allow_deletions: false
+
+      # Require conversation resolution before merging
+      required_conversation_resolution: false
+
+      # Lock branch (read-only)
+      lock_branch: false
+
+      # Restrict who can push to matching branches
+      restrictions:
+        users: []
+        teams: []
+        apps: []

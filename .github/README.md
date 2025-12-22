@@ -51,9 +51,38 @@ There are several ways to apply these branch protection settings to your GitHub 
 
 ```bash
 # This requires the gh CLI tool and appropriate permissions
-# Update the rule to enforce admin restrictions
+# Apply branch protection rules with enforce_admins enabled
 gh api -X PUT repos/FTC-24180/Autofig/branches/main/protection \
-  --input .github/settings.yml
+  -f required_pull_request_reviews[required_approving_review_count]=1 \
+  -F required_pull_request_reviews[dismiss_stale_reviews]=true \
+  -F required_status_checks[strict]=true \
+  -F enforce_admins=true \
+  -F allow_force_pushes=false \
+  -F allow_deletions=false \
+  -F required_linear_history=false \
+  -F required_conversation_resolution=false
+
+# Or use a more complex JSON payload
+gh api -X PUT repos/FTC-24180/Autofig/branches/main/protection \
+  --input - <<EOF
+{
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 1,
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": false
+  },
+  "required_status_checks": {
+    "strict": true,
+    "contexts": []
+  },
+  "enforce_admins": true,
+  "required_linear_history": false,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "required_conversation_resolution": false,
+  "restrictions": null
+}
+EOF
 ```
 
 ### Option 4: Using Terraform

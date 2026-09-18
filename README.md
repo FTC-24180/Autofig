@@ -1,3 +1,4 @@
+# This repository is deprecated and inactive
 # FTC Autofig
 
 A Progressive Web App (PWA) for configuring FTC autonomous routines. Built with React and TailwindCSS, this mobile-first application helps teams quickly create, manage, and deploy autonomous configurations for multiple matches.
